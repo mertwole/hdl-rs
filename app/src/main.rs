@@ -55,7 +55,7 @@ fn module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> im
     let temp_a = a.and(b);
     let temp_b = a.and(b);
 
-    let temp_c = temp_a & temp_b | temp_a ^ temp_b;
+    let temp_c = temp_a & temp_b | temp_a ^ !temp_b;
 
     temp_c.and(b).or(c).and(c).not()
 }
