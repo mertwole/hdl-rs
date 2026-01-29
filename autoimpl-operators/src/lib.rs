@@ -3,6 +3,8 @@ extern crate quote;
 extern crate proc_macro;
 extern crate syn;
 
+// TODO: Add tests.
+
 use proc_macro2::TokenStream;
 use syn::{DeriveInput, Generics, Ident, parse_macro_input, parse_quote};
 

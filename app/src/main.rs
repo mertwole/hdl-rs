@@ -51,6 +51,7 @@ impl Wire for TestInput {
 
 impl InputWire for TestInput {}
 
+// TODO: Accept generic struct instead of `impl InputWire` to be able to apply operators to inputs.
 fn module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> impl Wire {
     let temp_a = a.and(b);
     let temp_b = a.and(b);
