@@ -1,5 +1,6 @@
 mod wire;
 
+use wire::operators::*;
 use wire::*;
 
 fn main() {
