@@ -1,5 +1,6 @@
 mod wire;
 
+use autoimpl_operators::BitwiseOps;
 use wire::operators::*;
 use wire::*;
 
@@ -10,11 +11,12 @@ fn main() {
     println!("Value: {:?}", value);
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, BitwiseOps)]
 struct TestInput {
     state: WireState,
 }
 
+#[allow(dead_code)]
 impl TestInput {
     fn one() -> Self {
         Self {
@@ -50,5 +52,10 @@ impl Wire for TestInput {
 impl InputWire for TestInput {}
 
 fn module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> impl Wire {
-    a.and(b).or(c).and(c).not()
+    let temp_a = a.and(b);
+    let temp_b = a.and(b);
+
+    let temp_c = temp_a & temp_b | temp_a ^ temp_b;
+
+    temp_c.and(b).or(c).and(c).not()
 }

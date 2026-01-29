@@ -1,6 +1,17 @@
-[package]
-name = "hdl-rs"
+[workspace]
+resolver = "2"
+members = ["./app", "./autoimpl-operators"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
+authors = ["mertwole"]
 
-[dependencies]
+[workspace.dependencies]
+autoimpl-operators = { path = "./autoimpl-operators" }
+app = { path = "./app" }
+
+itertools = "0.14.0"
+proc-macro2 = "1.0.106"
+quote = "1.0.44"
+syn = "2.0.114"

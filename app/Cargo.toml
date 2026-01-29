@@ -1,0 +1,8 @@
+[package]
+name = "hdl-rs"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+autoimpl-operators.workspace = true
