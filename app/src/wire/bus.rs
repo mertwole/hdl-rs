@@ -1,11 +1,5 @@
 use super::*;
 
-enum Assert<const COND: bool> {}
-
-trait IsTrue {}
-
-impl IsTrue for Assert<true> {}
-
 pub trait Bus<const W: usize>: Clone + Copy {
     fn wire_at_const<const N: usize>() -> impl Wire;
 
