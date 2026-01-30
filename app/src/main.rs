@@ -1,3 +1,5 @@
+#![feature(generic_const_exprs)]
+
 mod wire;
 
 use autoimpl_operators::BitwiseOps;

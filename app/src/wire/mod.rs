@@ -1,3 +1,4 @@
+pub mod bus;
 pub mod operators;
 
 pub trait Wire: Clone + Copy {
