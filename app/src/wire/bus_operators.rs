@@ -199,4 +199,18 @@ mod tests {
             [&VALUES[..], &bus_2_values].concat()
         );
     }
+
+    #[test]
+    fn test_wire_at() {
+        let bus = TestBus(VALUES);
+
+        let wire_4 = bus.wire_at::<4>();
+        assert_eq!(wire_4.eval(), WireState::Zero);
+
+        let wire_0 = bus.wire_at::<0>();
+        assert_eq!(wire_0.eval(), WireState::Zero);
+
+        let wire_7 = bus.wire_at::<7>();
+        assert_eq!(wire_7.eval(), WireState::Z);
+    }
 }
