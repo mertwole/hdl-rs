@@ -1,5 +1,6 @@
 pub mod bus;
 pub mod bus_operators;
+pub mod concat;
 pub mod operators;
 
 pub trait Wire: Clone + Copy {

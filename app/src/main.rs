@@ -63,8 +63,5 @@ fn _module_example_with_buses(a: impl InputBus<8>, b: impl InputBus<8>) -> impl 
 
     let a_middle_inv = !a_middle;
 
-    a_left
-        .append_wire_right(a_middle_inv)
-        .append_bus_right(a_right)
-        .append_bus_right(b)
+    concat!(a_left, a_middle_inv, a_right, b)
 }
