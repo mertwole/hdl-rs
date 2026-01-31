@@ -2,9 +2,11 @@ use crate::wire::{bus::*, bus_operators::BusOps, *};
 
 #[macro_export]
 macro_rules! concat {
-    ($lhs:expr, $rhs:expr) => {
-        $crate::wire::concat::ToBus::to_bus($lhs)
-            .append_bus_right($crate::wire::concat::ToBus::to_bus($rhs))
+    ($only_one:expr) => {
+        $crate::wire::concat::ToBus::to_bus($only_one)
+    };
+    ($first:expr, $($rest:expr),+) => {
+        $crate::wire::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
     };
 }
 
@@ -24,6 +26,14 @@ impl<const W: usize, B: Bus<W>> ToBus<W, BusToBusMarker> for B {
     }
 }
 
+trait ToBusMarker {}
+
+struct WireToBusMarker {}
+impl ToBusMarker for WireToBusMarker {}
+
+struct BusToBusMarker {}
+impl ToBusMarker for BusToBusMarker {}
+
 #[derive(Clone, Copy)]
 struct SingleWireBus<W: Wire> {
     wire: W,
@@ -34,14 +44,6 @@ impl<W: Wire> Bus<1> for SingleWireBus<W> {
         [self.wire.eval()]
     }
 }
-
-trait ToBusMarker {}
-
-struct WireToBusMarker {}
-impl ToBusMarker for WireToBusMarker {}
-
-struct BusToBusMarker {}
-impl ToBusMarker for BusToBusMarker {}
 
 #[cfg(test)]
 mod tests {
@@ -98,5 +100,17 @@ mod tests {
 
         let wire_wire = concat!(wire_1, wire_2);
         assert_eq!(wire_wire.eval().to_vec(), [WIRE_1_VALUE, WIRE_2_VALUE]);
+
+        let wire_bus_wire_bus = concat!(wire_1, bus_1, wire_2, bus_2);
+        assert_eq!(
+            wire_bus_wire_bus.eval().to_vec(),
+            [
+                &[WIRE_1_VALUE],
+                &BUS_1_VALUES[..],
+                &[WIRE_2_VALUE],
+                &BUS_2_VALUES[..]
+            ]
+            .concat()
+        );
     }
 }
