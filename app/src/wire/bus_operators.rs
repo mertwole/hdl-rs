@@ -1,3 +1,5 @@
+use autoimpl_operators::BitwiseOps;
+
 use super::{bus::*, *};
 
 pub trait BusOps<const W: usize>: Bus<W> {
@@ -37,7 +39,7 @@ pub trait BusOps<const W: usize>: Bus<W> {
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, BitwiseOps)]
 pub struct WireAt<const W: usize, B: Bus<W>, const I: usize> {
     bus: B,
 }
