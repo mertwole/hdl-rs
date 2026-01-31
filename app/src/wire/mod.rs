@@ -1,5 +1,6 @@
 pub mod bus;
 pub mod bus_operators;
+pub mod concat;
 pub mod operators;
 
 pub trait Wire: Clone + Copy {
@@ -15,3 +16,12 @@ pub enum WireState {
 }
 
 pub trait InputWire: Wire + Clone + Copy {}
+
+#[derive(Clone, Copy)]
+pub struct Dummy {}
+
+impl Wire for Dummy {
+    fn eval(&self) -> WireState {
+        panic!("Dummy wire was used")
+    }
+}
