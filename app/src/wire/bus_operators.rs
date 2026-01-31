@@ -109,3 +109,92 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
             .expect("Checked to match the width")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const VALUES: [WireState; 8] = [
+        WireState::Zero,
+        WireState::One,
+        WireState::X,
+        WireState::Z,
+        WireState::Zero,
+        WireState::One,
+        WireState::X,
+        WireState::Z,
+    ];
+
+    #[derive(Clone, Copy)]
+    struct TestWire(WireState);
+
+    impl Wire for TestWire {
+        fn eval(&self) -> WireState {
+            self.0
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    struct TestBus<const W: usize>([WireState; W]);
+
+    impl<const W: usize> Bus<W> for TestBus<W> {
+        fn eval(self) -> [WireState; W] {
+            self.0
+        }
+    }
+
+    #[test]
+    fn test_sub_bus() {
+        let bus = TestBus(VALUES);
+
+        let sub_bus = bus.sub_bus::<4, 6>();
+        assert_eq!(sub_bus.eval(), VALUES[4..6]);
+
+        let sub_bus = bus.sub_bus::<0, 3>();
+        assert_eq!(sub_bus.eval(), VALUES[..3]);
+
+        let sub_bus = bus.sub_bus::<3, 8>();
+        assert_eq!(sub_bus.eval(), VALUES[3..8]);
+
+        let sub_bus = bus.sub_bus::<1, 1>();
+        assert_eq!(sub_bus.eval(), VALUES[1..1]);
+    }
+
+    #[test]
+    fn test_append_wire_right() {
+        let bus = TestBus(VALUES);
+        let wire = TestWire(WireState::X);
+        let appended = bus.append_wire_right(wire);
+
+        assert_eq!(
+            appended.eval().to_vec(),
+            [&VALUES[..], &[WireState::X]].concat()
+        );
+    }
+
+    #[test]
+    fn test_append_wire_left() {
+        let bus = TestBus(VALUES);
+        let wire = TestWire(WireState::X);
+        let appended = bus.append_wire_left(wire);
+
+        assert_eq!(
+            appended.eval().to_vec(),
+            [&[WireState::X], &VALUES[..]].concat()
+        );
+    }
+
+    #[test]
+    fn test_append_bus_right() {
+        let bus_2_values = [WireState::X, WireState::X, WireState::X];
+
+        let bus_1 = TestBus(VALUES);
+        let bus_2 = TestBus(bus_2_values);
+        let appended = bus_1.append_bus_right(bus_2);
+
+        assert_eq!(
+            appended.eval().to_vec(),
+            [&VALUES[..], &bus_2_values].concat()
+        );
+    }
+}
