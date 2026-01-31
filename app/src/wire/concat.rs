@@ -1,76 +1,102 @@
-use crate::wire::{
-    bus::*,
-    bus_operators::{BusOps, BusWithWireToLeft, BusWithWireToRight},
-    operators::WireAnd,
-    *,
-};
+use crate::wire::{bus::*, bus_operators::BusOps, *};
+
+#[macro_export]
+macro_rules! concat {
+    ($lhs:expr, $rhs:expr) => {
+        $crate::wire::concat::ToBus::to_bus($lhs)
+            .append_bus_right($crate::wire::concat::ToBus::to_bus($rhs))
+    };
+}
+
+pub trait ToBus<const W: usize, M: ToBusMarker> {
+    fn to_bus(self) -> impl Bus<W>;
+}
+
+impl<W: Wire> ToBus<1, WireToBusMarker> for W {
+    fn to_bus(self) -> impl Bus<1> {
+        SingleWireBus { wire: self }
+    }
+}
+
+impl<const W: usize, B: Bus<W>> ToBus<W, BusToBusMarker> for B {
+    fn to_bus(self) -> impl Bus<W> {
+        self
+    }
+}
 
 #[derive(Clone, Copy)]
-struct WireAndWire<WL: Wire, WR: Wire> {
-    lhs: WL,
-    rhs: WR,
+struct SingleWireBus<W: Wire> {
+    wire: W,
 }
 
-impl<WL: Wire, WR: Wire> Bus<2> for WireAndWire<WL, WR> {
-    fn eval(self) -> [WireState; 2] {
-        [self.lhs.eval(), self.rhs.eval()]
+impl<W: Wire> Bus<1> for SingleWireBus<W> {
+    fn eval(self) -> [WireState; 1] {
+        [self.wire.eval()]
     }
 }
 
-trait ConcatMarker {}
+trait ToBusMarker {}
 
-struct WireConcatMarker;
-impl ConcatMarker for WireConcatMarker {}
+struct WireToBusMarker {}
+impl ToBusMarker for WireToBusMarker {}
 
-struct BusConcatMarker;
-impl ConcatMarker for BusConcatMarker {}
+struct BusToBusMarker {}
+impl ToBusMarker for BusToBusMarker {}
 
-trait Concat<
-    const LEFT_BUS_WIDTH: usize,
-    const RIGHT_BUS_WIDTH: usize,
-    ML: ConcatMarker,
-    MR: ConcatMarker,
-> where
-    [(); LEFT_BUS_WIDTH + RIGHT_BUS_WIDTH]:,
-{
-    fn concat(self) -> impl Bus<{ LEFT_BUS_WIDTH + RIGHT_BUS_WIDTH }>;
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-impl<WL: Wire, WR: Wire> Concat<1, 1, WireConcatMarker, WireConcatMarker> for (WL, WR) {
-    fn concat(self) -> impl Bus<{ 1 + 1 }> {
-        WireAndWire {
-            lhs: self.0,
-            rhs: self.1,
+    // TODO: Place this and all similar to the `wire` module itself.
+    #[derive(Clone, Copy)]
+    struct TestWire(WireState);
+
+    impl Wire for TestWire {
+        fn eval(&self) -> WireState {
+            self.0
         }
     }
-}
+    // TODO: Place this and all similar to the `bus` module itself.
+    #[derive(Clone, Copy)]
+    struct TestBus<const W: usize>([WireState; W]);
 
-impl<const WL: usize, BL: Bus<WL>, const WR: usize, BR: Bus<WR>>
-    Concat<WL, WR, BusConcatMarker, BusConcatMarker> for (BL, BR)
-where
-    [(); WL + WR]:,
-{
-    fn concat(self) -> impl Bus<{ WL + WR }> {
-        self.0.append_bus_right(self.1)
+    impl<const W: usize> Bus<W> for TestBus<W> {
+        fn eval(self) -> [WireState; W] {
+            self.0
+        }
+    }
+
+    const BUS_1_VALUES: [WireState; 3] = [WireState::Zero, WireState::Zero, WireState::Zero];
+    const BUS_2_VALUES: [WireState; 3] = [WireState::One, WireState::One, WireState::One];
+    const WIRE_1_VALUE: WireState = WireState::X;
+    const WIRE_2_VALUE: WireState = WireState::Z;
+
+    #[test]
+    fn test_concat() {
+        let bus_1 = TestBus(BUS_1_VALUES);
+        let bus_2 = TestBus(BUS_2_VALUES);
+        let wire_1 = TestWire(WIRE_1_VALUE);
+        let wire_2 = TestWire(WIRE_2_VALUE);
+
+        let bus_bus = concat!(bus_1, bus_2);
+        assert_eq!(
+            bus_bus.eval().to_vec(),
+            [&BUS_1_VALUES[..], &BUS_2_VALUES[..]].concat()
+        );
+
+        let bus_wire = concat!(bus_1, wire_1);
+        assert_eq!(
+            bus_wire.eval().to_vec(),
+            [&BUS_1_VALUES[..], &[WIRE_1_VALUE]].concat()
+        );
+
+        let wire_bus = concat!(wire_1, bus_1);
+        assert_eq!(
+            wire_bus.eval().to_vec(),
+            [&[WIRE_1_VALUE], &BUS_1_VALUES[..]].concat()
+        );
+
+        let wire_wire = concat!(wire_1, wire_2);
+        assert_eq!(wire_wire.eval().to_vec(), [WIRE_1_VALUE, WIRE_2_VALUE]);
     }
 }
-
-// impl<WIRE: Wire, const W: usize, B: Bus<W>> Concat<1, W, WireConcatMarker, BusConcatMarker>
-//     for (WIRE, B)
-// where
-//     [(); 1 + W]:,
-// {
-//     fn concat(self) -> impl Bus<{ W + 1 }> {
-//         self.1.append_wire_left(self.0)
-//     }
-// }
-
-// impl<const W: usize, B: Bus<W>, WIRE: Wire> Concat<W, 1, BusConcatMarker, WireConcatMarker>
-//     for (B, WIRE)
-// where
-//     [(); 1 + W]:,
-// {
-//     fn concat(self) -> impl Bus<{ W + 1 }> {
-//         self.0.append_wire_right(self.1)
-//     }
-// }
