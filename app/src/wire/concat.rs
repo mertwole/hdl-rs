@@ -28,10 +28,10 @@ impl<const W: usize, B: Bus<W>> ToBus<W, BusToBusMarker> for B {
 
 trait ToBusMarker {}
 
-struct WireToBusMarker {}
+pub struct WireToBusMarker {}
 impl ToBusMarker for WireToBusMarker {}
 
-struct BusToBusMarker {}
+pub struct BusToBusMarker {}
 impl ToBusMarker for BusToBusMarker {}
 
 #[derive(Clone, Copy)]
