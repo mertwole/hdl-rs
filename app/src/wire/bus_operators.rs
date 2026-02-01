@@ -35,6 +35,10 @@ pub trait BusOps<const W: usize>: Bus<W> {
             rhs: bus,
         }
     }
+
+    fn and<RB: Bus<W>>(self, rhs: RB) -> BusAnd<W, Self, RB> {
+        BusAnd { lhs: self, rhs }
+    }
 }
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
@@ -109,6 +113,22 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
             .concat()
             .try_into()
             .expect("Checked to match the width")
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+    lhs: BL,
+    rhs: BR,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
+    fn eval(self) -> [WireState; W] {
+        let lhs = self.lhs.eval();
+        let rhs = self.rhs.eval();
+
+        let result: Vec<_> = (0..W).map(|i| lhs[i].and(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
     }
 }
 

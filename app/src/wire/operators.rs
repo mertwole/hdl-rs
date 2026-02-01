@@ -31,27 +31,7 @@ pub struct WireAnd<L: Wire, R: Wire> {
 
 impl<L: Wire, R: Wire> Wire for WireAnd<L, R> {
     fn eval(&self) -> WireState {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        if lhs == WireState::X || rhs == WireState::X {
-            return WireState::X;
-        }
-
-        match (self.lhs.eval(), self.rhs.eval()) {
-            (WireState::Zero, WireState::Zero) => WireState::Zero,
-            (WireState::Zero, WireState::One) => WireState::Zero,
-            (WireState::One, WireState::Zero) => WireState::Zero,
-            (WireState::One, WireState::One) => WireState::One,
-
-            (WireState::Zero, WireState::Z) => WireState::Zero,
-            (WireState::Z, WireState::Zero) => WireState::Zero,
-
-            (WireState::One, WireState::Z) => WireState::X,
-            (WireState::Z, WireState::One) => WireState::X,
-            (WireState::Z, WireState::Z) => WireState::X,
-            _ => unreachable!("Processed earlier"),
-        }
+        self.lhs.eval().and(self.rhs.eval())
     }
 }
 
