@@ -46,7 +46,6 @@ impl Not for LogicalWireState {
     }
 }
 
-// TODO: Move all the ops impl from `operators` here(as well as tests).
 impl WireState {
     pub fn and(self, rhs: WireState) -> WireState {
         if self == WireState::X || rhs == WireState::X {
