@@ -26,7 +26,7 @@ impl<const W: usize, B: Bus<W>> ToBus<W, BusToBusMarker> for B {
     }
 }
 
-trait ToBusMarker {}
+pub trait ToBusMarker {}
 
 pub struct WireToBusMarker {}
 impl ToBusMarker for WireToBusMarker {}
