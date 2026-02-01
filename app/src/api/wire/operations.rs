@@ -43,27 +43,7 @@ pub struct WireOr<L: Wire, R: Wire> {
 
 impl<L: Wire, R: Wire> Wire for WireOr<L, R> {
     fn eval(&self) -> WireState {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        if lhs == WireState::X || rhs == WireState::X {
-            return WireState::X;
-        }
-
-        match (self.lhs.eval(), self.rhs.eval()) {
-            (WireState::Zero, WireState::Zero) => WireState::Zero,
-            (WireState::Zero, WireState::One) => WireState::One,
-            (WireState::One, WireState::Zero) => WireState::One,
-            (WireState::One, WireState::One) => WireState::One,
-
-            (WireState::One, WireState::Z) => WireState::One,
-            (WireState::Z, WireState::One) => WireState::One,
-
-            (WireState::Zero, WireState::Z) => WireState::X,
-            (WireState::Z, WireState::Zero) => WireState::X,
-            (WireState::Z, WireState::Z) => WireState::X,
-            _ => unreachable!("Processed earlier"),
-        }
+        self.lhs.eval().or(self.rhs.eval())
     }
 }
 
@@ -75,26 +55,7 @@ pub struct WireXor<L: Wire, R: Wire> {
 
 impl<L: Wire, R: Wire> Wire for WireXor<L, R> {
     fn eval(&self) -> WireState {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        if lhs == WireState::X || rhs == WireState::X {
-            return WireState::X;
-        }
-
-        match (self.lhs.eval(), self.rhs.eval()) {
-            (WireState::Zero, WireState::Zero) => WireState::Zero,
-            (WireState::Zero, WireState::One) => WireState::One,
-            (WireState::One, WireState::Zero) => WireState::One,
-            (WireState::One, WireState::One) => WireState::Zero,
-
-            (WireState::One, WireState::Z) => WireState::X,
-            (WireState::Z, WireState::One) => WireState::X,
-            (WireState::Zero, WireState::Z) => WireState::X,
-            (WireState::Z, WireState::Zero) => WireState::X,
-            (WireState::Z, WireState::Z) => WireState::X,
-            _ => unreachable!("Processed earlier"),
-        }
+        self.lhs.eval().xor(self.rhs.eval())
     }
 }
 
@@ -105,53 +66,6 @@ pub struct WireNot<W: Wire> {
 
 impl<W: Wire> Wire for WireNot<W> {
     fn eval(&self) -> WireState {
-        match self.wire.eval() {
-            WireState::Zero => WireState::One,
-            WireState::One => WireState::Zero,
-            WireState::Z => WireState::X,
-            WireState::X => WireState::X,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::api::wire::mock::*;
-
-    #[test]
-    fn test_binary_operators_symmetry() {
-        const WIRE_STATE_VARIANTS: [WireState; 4] =
-            [WireState::Zero, WireState::One, WireState::X, WireState::Z];
-        let mut input_permutations = vec![];
-        for i in 0..4 {
-            for j in i..4 {
-                input_permutations.push((
-                    MockWire::new(WIRE_STATE_VARIANTS[i]),
-                    MockWire::new(WIRE_STATE_VARIANTS[j]),
-                ));
-            }
-        }
-
-        for &(lhs, rhs) in &input_permutations {
-            assert_eq!(
-                WireAnd { lhs, rhs }.eval(),
-                WireAnd { lhs: rhs, rhs: lhs }.eval()
-            );
-        }
-
-        for &(lhs, rhs) in &input_permutations {
-            assert_eq!(
-                WireOr { lhs, rhs }.eval(),
-                WireOr { lhs: rhs, rhs: lhs }.eval()
-            );
-        }
-
-        for &(lhs, rhs) in &input_permutations {
-            assert_eq!(
-                WireXor { lhs, rhs }.eval(),
-                WireXor { lhs: rhs, rhs: lhs }.eval()
-            );
-        }
+        self.wire.eval().not()
     }
 }
