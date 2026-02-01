@@ -1,13 +1,11 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-mod api;
-
-use api::operators::*;
-use api::*;
 use autoimpl_operators::BitwiseOps;
 
-use crate::api::{Bus, BusOps, InputBus};
+mod api;
+
+use api::prelude::*;
 
 fn main() {}
 

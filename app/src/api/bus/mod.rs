@@ -1,6 +1,6 @@
-use super::*;
+use crate::api::prelude::*;
 
-pub mod operations;
+mod operations;
 pub use operations::*;
 
 pub trait Bus<const W: usize>: Clone + Copy {

@@ -1,7 +1,7 @@
 // TODO: Test that `BitwiseOps` is derived for all structs implementing `Wire`.
 use autoimpl_operators::BitwiseOps;
 
-use super::*;
+use crate::api::prelude::*;
 
 pub trait LogicOps: Wire {
     fn and<R: Wire>(&self, rhs: R) -> WireAnd<Self, R> {

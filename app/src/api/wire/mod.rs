@@ -2,8 +2,8 @@ use std::ops::Not;
 
 use autoimpl_operators::BitwiseOps;
 
-pub mod operators;
-pub use operators::*;
+mod operations;
+pub use operations::*;
 
 pub trait Wire: Clone + Copy {
     fn eval(&self) -> WireState;
