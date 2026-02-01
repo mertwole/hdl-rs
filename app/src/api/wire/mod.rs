@@ -5,6 +5,9 @@ use autoimpl_operators::BitwiseOps;
 mod operations;
 pub use operations::*;
 
+#[cfg(test)]
+pub mod mock;
+
 pub trait Wire: Clone + Copy {
     fn eval(&self) -> WireState;
 }

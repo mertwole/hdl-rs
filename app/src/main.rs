@@ -61,7 +61,7 @@ impl<const W: usize> Bus<W> for TestInputBus<W> {
 
 impl<const W: usize> InputBus<W> for TestInputBus<W> {}
 
-// TODO: Accept generic struct instead of `impl InputWire` to be able to apply operators to inputs.
+// TODO: Find a way to apply operators to inputs.
 fn module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> impl Wire {
     let temp_a = a.and(b);
     let temp_b = a.and(b);

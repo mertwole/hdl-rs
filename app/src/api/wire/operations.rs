@@ -117,17 +117,7 @@ impl<W: Wire> Wire for WireNot<W> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[derive(Clone, Copy)]
-    struct TestWire(WireState);
-
-    impl Wire for TestWire {
-        fn eval(&self) -> WireState {
-            self.0
-        }
-    }
-
-    impl InputWire for TestWire {}
+    use crate::api::wire::mock::*;
 
     #[test]
     fn test_binary_operators_symmetry() {
@@ -137,8 +127,8 @@ mod tests {
         for i in 0..4 {
             for j in i..4 {
                 input_permutations.push((
-                    TestWire(WIRE_STATE_VARIANTS[i]),
-                    TestWire(WIRE_STATE_VARIANTS[j]),
+                    MockWire::new(WIRE_STATE_VARIANTS[i]),
+                    MockWire::new(WIRE_STATE_VARIANTS[j]),
                 ));
             }
         }
