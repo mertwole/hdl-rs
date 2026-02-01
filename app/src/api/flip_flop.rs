@@ -1,7 +1,6 @@
 use crate::api::{
     ConstZeroWire, LogicalWireState, Wire, WireState,
-    bus::{Bus, ConstBus, FanoutBus},
-    bus_operators::BusOps,
+    bus::{Bus, BusOps, ConstBus, FanoutBus},
 };
 
 #[derive(Clone, Copy)]

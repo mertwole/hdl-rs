@@ -7,10 +7,7 @@ use api::operators::*;
 use api::*;
 use autoimpl_operators::BitwiseOps;
 
-use crate::api::{
-    bus::{Bus, InputBus},
-    bus_operators::BusOps,
-};
+use crate::api::{Bus, BusOps, InputBus};
 
 fn main() {}
 

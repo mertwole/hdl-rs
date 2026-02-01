@@ -1,6 +1,6 @@
 use autoimpl_operators::BitwiseOps;
 
-use super::{bus::*, *};
+use super::*;
 
 pub trait BusOps<const W: usize>: Bus<W> {
     fn wire_at<const I: usize>(self) -> WireAt<W, Self, I>

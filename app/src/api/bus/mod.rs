@@ -1,5 +1,8 @@
 use super::*;
 
+pub mod operations;
+pub use operations::*;
+
 pub trait Bus<const W: usize>: Clone + Copy {
     fn eval(self) -> [WireState; W];
 }
