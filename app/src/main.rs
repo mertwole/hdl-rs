@@ -4,10 +4,30 @@
 use autoimpl_operators::BitwiseOps;
 
 mod api;
-
 use api::prelude::*;
 
-fn main() {}
+fn main() {
+    let a = TestInput {
+        state: WireState::Zero,
+    };
+    let b = TestInput {
+        state: WireState::One,
+    };
+    let c = TestInput {
+        state: WireState::Z,
+    };
+
+    let _out = module_example(a, b, c);
+
+    let bus_1 = TestInputBus {
+        values: [WireState::Zero; 8],
+    };
+    let bus_2 = TestInputBus {
+        values: [WireState::One; 8],
+    };
+
+    let _out_bus = module_example_with_buses(bus_1, bus_2);
+}
 
 #[derive(Clone, Copy, Debug, BitwiseOps)]
 struct TestInput {
@@ -42,7 +62,7 @@ impl<const W: usize> Bus<W> for TestInputBus<W> {
 impl<const W: usize> InputBus<W> for TestInputBus<W> {}
 
 // TODO: Accept generic struct instead of `impl InputWire` to be able to apply operators to inputs.
-fn _module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> impl Wire {
+fn module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> impl Wire {
     let temp_a = a.and(b);
     let temp_b = a.and(b);
 
@@ -51,7 +71,7 @@ fn _module_example(a: impl InputWire, b: impl InputWire, c: impl InputWire) -> i
     temp_c.and(b).or(c).and(c).not()
 }
 
-fn _module_example_with_buses(a: impl InputBus<8>, b: impl InputBus<8>) -> impl Bus<16> {
+fn module_example_with_buses(a: impl InputBus<8>, b: impl InputBus<8>) -> impl Bus<16> {
     let a_left = a.sub_bus::<0, 3>();
     let a_middle = a.wire_at::<3>();
     let a_right = a.sub_bus::<4, 8>();
