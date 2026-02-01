@@ -1,4 +1,4 @@
-use crate::wire::{
+use crate::api::{
     ConstZeroWire, LogicalWireState, Wire, WireState,
     bus::{Bus, ConstBus, FanoutBus},
     bus_operators::BusOps,

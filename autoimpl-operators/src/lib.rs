@@ -43,40 +43,40 @@ impl TypeInfo {
 
         quote! {
             impl #impl_generics ::std::ops::Not for #name #ty_generics #where_clause {
-                type Output = crate::wire::operators::WireNot<#name #ty_generics>;
+                type Output = crate::api::operators::WireNot<#name #ty_generics>;
 
                 fn not(self) -> Self::Output {
-                    use crate::wire::operators::LogicOps;
+                    use crate::api::operators::LogicOps;
 
                     self.not()
                 }
             }
 
             impl #impl_generics_with_added_t ::std::ops::BitAnd<_T> for #name #ty_generics #where_clause {
-                type Output = crate::wire::operators::WireAnd<#name #ty_generics, _T>;
+                type Output = crate::api::operators::WireAnd<#name #ty_generics, _T>;
 
                 fn bitand(self, rhs: _T) -> Self::Output {
-                    use crate::wire::operators::LogicOps;
+                    use crate::api::operators::LogicOps;
 
                     self.and(rhs)
                 }
             }
 
             impl #impl_generics_with_added_t ::std::ops::BitOr<_T> for #name #ty_generics #where_clause {
-                type Output = crate::wire::operators::WireOr<#name #ty_generics, _T>;
+                type Output = crate::api::operators::WireOr<#name #ty_generics, _T>;
 
                 fn bitor(self, rhs: _T) -> Self::Output {
-                    use crate::wire::operators::LogicOps;
+                    use crate::api::operators::LogicOps;
 
                     self.or(rhs)
                 }
             }
 
             impl #impl_generics_with_added_t ::std::ops::BitXor<_T> for #name #ty_generics #where_clause {
-                type Output = crate::wire::operators::WireXor<#name #ty_generics, _T>;
+                type Output = crate::api::operators::WireXor<#name #ty_generics, _T>;
 
                 fn bitxor(self, rhs: _T) -> Self::Output {
-                    use crate::wire::operators::LogicOps;
+                    use crate::api::operators::LogicOps;
 
                     self.xor(rhs)
                 }

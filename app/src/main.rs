@@ -1,13 +1,13 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-mod wire;
+mod api;
 
+use api::operators::*;
+use api::*;
 use autoimpl_operators::BitwiseOps;
-use wire::operators::*;
-use wire::*;
 
-use crate::wire::{
+use crate::api::{
     bus::{Bus, InputBus},
     bus_operators::BusOps,
 };

@@ -1,12 +1,12 @@
-use crate::wire::{bus::*, bus_operators::BusOps, *};
+use crate::api::{bus::*, bus_operators::BusOps, *};
 
 #[macro_export]
 macro_rules! concat {
     ($only_one:expr) => {
-        $crate::wire::concat::ToBus::to_bus($only_one)
+        $crate::api::concat::ToBus::to_bus($only_one)
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::wire::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
+        $crate::api::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
     };
 }
 
