@@ -1,4 +1,10 @@
-use super::*;
+use crate::api::prelude::*;
+
+mod operations;
+pub use operations::*;
+
+#[cfg(test)]
+pub mod mock;
 
 pub trait Bus<const W: usize>: Clone + Copy {
     fn eval(self) -> [WireState; W];

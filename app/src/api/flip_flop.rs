@@ -1,8 +1,4 @@
-use crate::wire::{
-    ConstZeroWire, LogicalWireState, Wire, WireState,
-    bus::{Bus, ConstBus, FanoutBus},
-    bus_operators::BusOps,
-};
+use crate::api::prelude::*;
 
 #[derive(Clone, Copy)]
 pub struct FlipFlop<D: Wire, C: Wire, R: Wire, S: Wire> {

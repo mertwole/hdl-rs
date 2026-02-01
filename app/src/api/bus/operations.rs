@@ -1,6 +1,6 @@
 use autoimpl_operators::BitwiseOps;
 
-use super::{bus::*, *};
+use crate::api::prelude::*;
 
 pub trait BusOps<const W: usize>: Bus<W> {
     fn wire_at<const I: usize>(self) -> WireAt<W, Self, I>
@@ -135,6 +135,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::{bus::mock::*, wire::mock::*};
 
     const VALUES: [WireState; 8] = [
         WireState::Zero,
@@ -147,27 +148,9 @@ mod tests {
         WireState::Z,
     ];
 
-    #[derive(Clone, Copy)]
-    struct TestWire(WireState);
-
-    impl Wire for TestWire {
-        fn eval(&self) -> WireState {
-            self.0
-        }
-    }
-
-    #[derive(Clone, Copy)]
-    struct TestBus<const W: usize>([WireState; W]);
-
-    impl<const W: usize> Bus<W> for TestBus<W> {
-        fn eval(self) -> [WireState; W] {
-            self.0
-        }
-    }
-
     #[test]
     fn test_sub_bus() {
-        let bus = TestBus(VALUES);
+        let bus = MockBus::new(VALUES);
 
         let sub_bus = bus.sub_bus::<4, 6>();
         assert_eq!(sub_bus.eval(), VALUES[4..6]);
@@ -184,8 +167,8 @@ mod tests {
 
     #[test]
     fn test_append_wire_right() {
-        let bus = TestBus(VALUES);
-        let wire = TestWire(WireState::X);
+        let bus = MockBus::new(VALUES);
+        let wire = MockWire::new(WireState::X);
         let appended = bus.append_wire_right(wire);
 
         assert_eq!(
@@ -196,8 +179,8 @@ mod tests {
 
     #[test]
     fn test_append_wire_left() {
-        let bus = TestBus(VALUES);
-        let wire = TestWire(WireState::X);
+        let bus = MockBus::new(VALUES);
+        let wire = MockWire::new(WireState::X);
         let appended = bus.append_wire_left(wire);
 
         assert_eq!(
@@ -210,8 +193,8 @@ mod tests {
     fn test_append_bus_right() {
         let bus_2_values = [WireState::X, WireState::X, WireState::X];
 
-        let bus_1 = TestBus(VALUES);
-        let bus_2 = TestBus(bus_2_values);
+        let bus_1 = MockBus::new(VALUES);
+        let bus_2 = MockBus::new(bus_2_values);
         let appended = bus_1.append_bus_right(bus_2);
 
         assert_eq!(
@@ -222,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_wire_at() {
-        let bus = TestBus(VALUES);
+        let bus = MockBus::new(VALUES);
 
         let wire_4 = bus.wire_at::<4>();
         assert_eq!(wire_4.eval(), WireState::Zero);

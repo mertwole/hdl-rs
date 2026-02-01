@@ -1,12 +1,12 @@
-use crate::wire::{bus::*, bus_operators::BusOps, *};
+use crate::api::prelude::*;
 
 #[macro_export]
 macro_rules! concat {
     ($only_one:expr) => {
-        $crate::wire::concat::ToBus::to_bus($only_one)
+        $crate::api::concat::ToBus::to_bus($only_one)
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::wire::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
+        $crate::api::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
     };
 }
 
@@ -48,25 +48,7 @@ impl<W: Wire> Bus<1> for SingleWireBus<W> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // TODO: Place this and all similar to the `wire` module itself.
-    #[derive(Clone, Copy)]
-    struct TestWire(WireState);
-
-    impl Wire for TestWire {
-        fn eval(&self) -> WireState {
-            self.0
-        }
-    }
-    // TODO: Place this and all similar to the `bus` module itself.
-    #[derive(Clone, Copy)]
-    struct TestBus<const W: usize>([WireState; W]);
-
-    impl<const W: usize> Bus<W> for TestBus<W> {
-        fn eval(self) -> [WireState; W] {
-            self.0
-        }
-    }
+    use crate::api::{bus::mock::*, wire::mock::*};
 
     const BUS_1_VALUES: [WireState; 3] = [WireState::Zero, WireState::Zero, WireState::Zero];
     const BUS_2_VALUES: [WireState; 3] = [WireState::One, WireState::One, WireState::One];
@@ -75,10 +57,10 @@ mod tests {
 
     #[test]
     fn test_concat() {
-        let bus_1 = TestBus(BUS_1_VALUES);
-        let bus_2 = TestBus(BUS_2_VALUES);
-        let wire_1 = TestWire(WIRE_1_VALUE);
-        let wire_2 = TestWire(WIRE_2_VALUE);
+        let bus_1 = MockBus::new(BUS_1_VALUES);
+        let bus_2 = MockBus::new(BUS_2_VALUES);
+        let wire_1 = MockWire::new(WIRE_1_VALUE);
+        let wire_2 = MockWire::new(WIRE_2_VALUE);
 
         let bus_bus = concat!(bus_1, bus_2);
         assert_eq!(
