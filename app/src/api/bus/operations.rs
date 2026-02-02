@@ -39,6 +39,18 @@ pub trait BusOps<const W: usize>: Bus<W> {
     fn and<RB: Bus<W>>(self, rhs: RB) -> BusAnd<W, Self, RB> {
         BusAnd { lhs: self, rhs }
     }
+
+    fn or<RB: Bus<W>>(self, rhs: RB) -> BusOr<W, Self, RB> {
+        BusOr { lhs: self, rhs }
+    }
+
+    fn xor<RB: Bus<W>>(self, rhs: RB) -> BusXor<W, Self, RB> {
+        BusXor { lhs: self, rhs }
+    }
+
+    fn not(self) -> BusNot<W, Self> {
+        BusNot { bus: self }
+    }
 }
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
@@ -129,6 +141,49 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
 
         let result: Vec<_> = (0..W).map(|i| lhs[i].and(rhs[i])).collect();
         result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+    lhs: BL,
+    rhs: BR,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
+    fn eval(self) -> [WireState; W] {
+        let lhs = self.lhs.eval();
+        let rhs = self.rhs.eval();
+
+        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+    lhs: BL,
+    rhs: BR,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
+    fn eval(self) -> [WireState; W] {
+        let lhs = self.lhs.eval();
+        let rhs = self.rhs.eval();
+
+        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusNot<const W: usize, B: Bus<W>> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
+    fn eval(self) -> [WireState; W] {
+        self.bus.eval().map(|value| value.not())
     }
 }
 
