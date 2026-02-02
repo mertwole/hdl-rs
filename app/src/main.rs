@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use autoimpl_operators::WireBitwiseOps;
+use autoimpl_operators::{BusBitwiseOps, WireBitwiseOps};
 
 mod api;
 use api::prelude::*;
@@ -74,7 +74,7 @@ impl<W: InputWire> Wire for InputWireWrapper<W> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, BusBitwiseOps)]
 struct InputBusWrapper<const W: usize, B: Bus<W>>(B);
 
 impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {

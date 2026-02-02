@@ -1,4 +1,4 @@
-use autoimpl_operators::{BusBitwiseOps, WireBitwiseOps};
+use autoimpl_operators::WireBitwiseOps;
 
 use crate::api::prelude::*;
 

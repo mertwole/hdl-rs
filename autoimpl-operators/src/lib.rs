@@ -20,6 +20,7 @@ pub fn derive_wire_bitwise_ops(input: proc_macro::TokenStream) -> proc_macro::To
     proc_macro::TokenStream::from(operators_impl)
 }
 
+// TODO: Turn into attribute macro.
 #[proc_macro_derive(BusBitwiseOps)]
 pub fn derive_bus_bitwise_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let type_info = parse_macro_input!(input as DeriveInput);
