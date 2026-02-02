@@ -51,6 +51,14 @@ pub trait BusOps<const W: usize>: Bus<W> {
     fn not(self) -> BusNot<W, Self> {
         BusNot { bus: self }
     }
+
+    fn lshift<const S: usize>(self) -> BusShiftLeft<W, Self, S> {
+        BusShiftLeft { bus: self }
+    }
+
+    fn rshift<const S: usize>(self) -> BusShiftRight<W, Self, S> {
+        BusShiftRight { bus: self }
+    }
 }
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
@@ -184,6 +192,44 @@ pub struct BusNot<const W: usize, B: Bus<W>> {
 impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
     fn eval(self) -> [WireState; W] {
         self.bus.eval().map(|value| value.not())
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S> {
+    fn eval(self) -> [WireState; W] {
+        let value = self.bus.eval();
+
+        let result: Vec<_> = (0..W)
+            .map(|i| if S > i { WireState::Zero } else { value[i - S] })
+            .collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S> {
+    fn eval(self) -> [WireState; W] {
+        let value = self.bus.eval();
+
+        let result: Vec<_> = (0..W)
+            .map(|i| {
+                if i + S >= W {
+                    WireState::Zero
+                } else {
+                    value[i + S]
+                }
+            })
+            .collect();
+        result.try_into().expect("Checked to match the length")
     }
 }
 
