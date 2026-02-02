@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use autoimpl_operators::BitwiseOps;
+use autoimpl_operators::WireBitwiseOps;
 
 mod api;
 use api::prelude::*;
@@ -33,7 +33,7 @@ fn main() {
     let _out_bus = module_example_with_buses(InputBusWrapper(bus_1), InputBusWrapper(bus_2));
 }
 
-#[derive(Clone, Copy, Debug, BitwiseOps)]
+#[derive(Clone, Copy, Debug, WireBitwiseOps)]
 struct TestInput {
     state: WireState,
 }
@@ -65,7 +65,7 @@ impl<const W: usize> Bus<W> for TestInputBus<W> {
 
 impl<const W: usize> InputBus<W> for TestInputBus<W> {}
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 struct InputWireWrapper<W: InputWire>(W);
 
 impl<W: InputWire> Wire for InputWireWrapper<W> {

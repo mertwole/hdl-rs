@@ -1,4 +1,4 @@
-use autoimpl_operators::BitwiseOps;
+use autoimpl_operators::{BusBitwiseOps, WireBitwiseOps};
 
 use crate::api::prelude::*;
 
@@ -63,7 +63,7 @@ pub trait BusOps<const W: usize>: Bus<W> {
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireAt<const W: usize, B: Bus<W>, const I: usize> {
     bus: B,
 }

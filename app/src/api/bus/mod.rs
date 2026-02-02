@@ -1,3 +1,5 @@
+use autoimpl_operators::BusBitwiseOps;
+
 use crate::api::prelude::*;
 
 mod operations;

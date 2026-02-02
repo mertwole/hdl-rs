@@ -1,6 +1,6 @@
 use std::ops::Not;
 
-use autoimpl_operators::BitwiseOps;
+use autoimpl_operators::WireBitwiseOps;
 
 mod operations;
 pub use operations::*;
@@ -121,7 +121,7 @@ impl WireState {
 
 pub trait InputWire: Wire + Clone + Copy {}
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct ConstZeroWire {}
 
 impl Wire for ConstZeroWire {
@@ -136,7 +136,7 @@ impl ConstZeroWire {
     }
 }
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct ConstOneWire {}
 
 impl Wire for ConstOneWire {
