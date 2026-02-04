@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use autoimpl_operators::{BusBitwiseOps, WireBitwiseOps};
+use autoimpl_operators::{WireBitwiseOps, derive_bus_bitwise_ops};
 
 mod api;
 use api::prelude::*;
@@ -47,6 +47,7 @@ impl Wire for TestInput {
 impl InputWire for TestInput {}
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 struct TestInputBus<const W: usize> {
     values: [WireState; W],
 }
@@ -74,7 +75,8 @@ impl<W: InputWire> Wire for InputWireWrapper<W> {
     }
 }
 
-#[derive(Clone, Copy, BusBitwiseOps)]
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 struct InputBusWrapper<const W: usize, B: Bus<W>>(B);
 
 impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
@@ -100,7 +102,9 @@ fn module_example_with_buses<A: InputBus<8>, B: InputBus<8>>(
     a: InputBusWrapper<8, A>,
     b: InputBusWrapper<8, B>,
 ) -> impl Bus<16> {
-    let a_left = a.sub_bus::<0, 3>();
+    let c = a & b | a ^ !b;
+
+    let a_left = c.sub_bus::<0, 3>();
     let a_middle = a.wire_at::<3>();
     let a_right = a.sub_bus::<4, 8>();
 
