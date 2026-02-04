@@ -1,4 +1,4 @@
-use autoimpl_operators::BitwiseOps;
+use autoimpl_operators::{WireBitwiseOps, derive_bus_bitwise_ops};
 
 use crate::api::prelude::*;
 
@@ -39,11 +39,31 @@ pub trait BusOps<const W: usize>: Bus<W> {
     fn and<RB: Bus<W>>(self, rhs: RB) -> BusAnd<W, Self, RB> {
         BusAnd { lhs: self, rhs }
     }
+
+    fn or<RB: Bus<W>>(self, rhs: RB) -> BusOr<W, Self, RB> {
+        BusOr { lhs: self, rhs }
+    }
+
+    fn xor<RB: Bus<W>>(self, rhs: RB) -> BusXor<W, Self, RB> {
+        BusXor { lhs: self, rhs }
+    }
+
+    fn not(self) -> BusNot<W, Self> {
+        BusNot { bus: self }
+    }
+
+    fn lshift<const S: usize>(self) -> BusShiftLeft<W, Self, S> {
+        BusShiftLeft { bus: self }
+    }
+
+    fn rshift<const S: usize>(self) -> BusShiftRight<W, Self, S> {
+        BusShiftRight { bus: self }
+    }
 }
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireAt<const W: usize, B: Bus<W>, const I: usize> {
     bus: B,
 }
@@ -55,6 +75,7 @@ impl<const W: usize, B: Bus<W>, const I: usize> Wire for WireAt<W, B, I> {
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(WIDTH)]
 pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> {
     bus: B,
 }
@@ -70,6 +91,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W + 1)]
 pub struct BusWithWireToLeft<const W: usize, B: Bus<W>, WIRE: Wire> {
     bus: B,
     wire: WIRE,
@@ -85,6 +107,7 @@ impl<const W: usize, B: Bus<W>, WIRE: Wire> Bus<{ W + 1 }> for BusWithWireToLeft
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W + 1)]
 pub struct BusWithWireToRight<const W: usize, B: Bus<W>, WIRE: Wire> {
     bus: B,
     wire: WIRE,
@@ -100,6 +123,7 @@ impl<const W: usize, B: Bus<W>, WIRE: Wire> Bus<{ W + 1 }> for BusWithWireToRigh
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W1 + W2)]
 pub struct BusConcat<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> {
     lhs: B1,
     rhs: B2,
@@ -117,6 +141,7 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
@@ -128,6 +153,92 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
         let rhs = self.rhs.eval();
 
         let result: Vec<_> = (0..W).map(|i| lhs[i].and(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+    lhs: BL,
+    rhs: BR,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
+    fn eval(self) -> [WireState; W] {
+        let lhs = self.lhs.eval();
+        let rhs = self.rhs.eval();
+
+        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+    lhs: BL,
+    rhs: BR,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
+    fn eval(self) -> [WireState; W] {
+        let lhs = self.lhs.eval();
+        let rhs = self.rhs.eval();
+
+        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+pub struct BusNot<const W: usize, B: Bus<W>> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
+    fn eval(self) -> [WireState; W] {
+        self.bus.eval().map(|value| value.not())
+    }
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S> {
+    fn eval(self) -> [WireState; W] {
+        let value = self.bus.eval();
+
+        let result: Vec<_> = (0..W)
+            .map(|i| if S > i { WireState::Zero } else { value[i - S] })
+            .collect();
+        result.try_into().expect("Checked to match the length")
+    }
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
+    bus: B,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S> {
+    fn eval(self) -> [WireState; W] {
+        let value = self.bus.eval();
+
+        let result: Vec<_> = (0..W)
+            .map(|i| {
+                if i + S >= W {
+                    WireState::Zero
+                } else {
+                    value[i + S]
+                }
+            })
+            .collect();
         result.try_into().expect("Checked to match the length")
     }
 }

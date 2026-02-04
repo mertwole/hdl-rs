@@ -5,82 +5,35 @@ extern crate syn;
 
 // TODO: Add tests.
 
-use proc_macro2::TokenStream;
-use syn::{DeriveInput, Generics, Ident, parse_macro_input, parse_quote};
+use syn::{DeriveInput, Expr, ItemStruct, parse_macro_input};
 
-#[proc_macro_derive(BitwiseOps)]
-pub fn implement_cache(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+mod bus_bitwise_ops;
+mod wire_bitwise_ops;
+
+#[proc_macro_derive(WireBitwiseOps)]
+pub fn derive_wire_bitwise_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let type_info = parse_macro_input!(input as DeriveInput);
-    let type_info = TypeInfo::from_derive_input(type_info);
+    let type_info = wire_bitwise_ops::TypeInfo::from_derive_input(type_info);
 
     let operators_impl = type_info.generate_operators_impl();
 
     proc_macro::TokenStream::from(operators_impl)
 }
 
-struct TypeInfo {
-    name: Ident,
-    generics: Generics,
-}
+#[proc_macro_attribute]
+pub fn derive_bus_bitwise_ops(
+    attr: proc_macro::TokenStream,
+    mut item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let input = item.clone();
+    let item_struct = parse_macro_input!(input as ItemStruct);
 
-impl TypeInfo {
-    fn from_derive_input(item: DeriveInput) -> Self {
-        Self {
-            name: item.ident,
-            generics: item.generics,
-        }
-    }
+    let width_expr = parse_macro_input!(attr as Expr);
 
-    fn generate_operators_impl(self) -> TokenStream {
-        let name = self.name;
+    let type_info = bus_bitwise_ops::TypeInfo::new(item_struct, width_expr);
 
-        let mut impl_generics_with_added_t = self.generics.clone();
-        impl_generics_with_added_t
-            .params
-            .push(parse_quote!(_T: Wire));
+    let operators_impl = type_info.generate_operators_impl();
 
-        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-
-        quote! {
-            impl #impl_generics ::std::ops::Not for #name #ty_generics #where_clause {
-                type Output = crate::api::wire::WireNot<#name #ty_generics>;
-
-                fn not(self) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.not()
-                }
-            }
-
-            impl #impl_generics_with_added_t ::std::ops::BitAnd<_T> for #name #ty_generics #where_clause {
-                type Output = crate::api::wire::WireAnd<#name #ty_generics, _T>;
-
-                fn bitand(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.and(rhs)
-                }
-            }
-
-            impl #impl_generics_with_added_t ::std::ops::BitOr<_T> for #name #ty_generics #where_clause {
-                type Output = crate::api::wire::WireOr<#name #ty_generics, _T>;
-
-                fn bitor(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.or(rhs)
-                }
-            }
-
-            impl #impl_generics_with_added_t ::std::ops::BitXor<_T> for #name #ty_generics #where_clause {
-                type Output = crate::api::wire::WireXor<#name #ty_generics, _T>;
-
-                fn bitxor(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.xor(rhs)
-                }
-            }
-        }
-    }
+    item.extend(proc_macro::TokenStream::from(operators_impl));
+    item
 }

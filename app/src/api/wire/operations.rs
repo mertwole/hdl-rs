@@ -1,5 +1,5 @@
-// TODO: Test that `BitwiseOps` is derived for all structs implementing `Wire`.
-use autoimpl_operators::BitwiseOps;
+// TODO: Test that `WireBitwiseOps` is derived for all structs implementing `Wire`.
+use autoimpl_operators::WireBitwiseOps;
 
 use crate::api::prelude::*;
 
@@ -23,7 +23,7 @@ pub trait LogicOps: Wire {
 
 impl<T: Wire> LogicOps for T {}
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireAnd<L: Wire, R: Wire> {
     lhs: L,
     rhs: R,
@@ -35,7 +35,7 @@ impl<L: Wire, R: Wire> Wire for WireAnd<L, R> {
     }
 }
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireOr<L: Wire, R: Wire> {
     lhs: L,
     rhs: R,
@@ -47,7 +47,7 @@ impl<L: Wire, R: Wire> Wire for WireOr<L, R> {
     }
 }
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireXor<L: Wire, R: Wire> {
     lhs: L,
     rhs: R,
@@ -59,7 +59,7 @@ impl<L: Wire, R: Wire> Wire for WireXor<L, R> {
     }
 }
 
-#[derive(Clone, Copy, BitwiseOps)]
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct WireNot<W: Wire> {
     wire: W,
 }

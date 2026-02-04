@@ -1,3 +1,5 @@
+use autoimpl_operators::derive_bus_bitwise_ops;
+
 use crate::api::prelude::*;
 
 #[macro_export]
@@ -35,6 +37,7 @@ pub struct BusToBusMarker {}
 impl ToBusMarker for BusToBusMarker {}
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(1)]
 struct SingleWireBus<W: Wire> {
     wire: W,
 }

@@ -1,6 +1,7 @@
 use crate::api::prelude::*;
 
 mod operations;
+use autoimpl_operators::derive_bus_bitwise_ops;
 pub use operations::*;
 
 #[cfg(test)]
@@ -13,6 +14,7 @@ pub trait Bus<const W: usize>: Clone + Copy {
 pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 pub struct FanoutBus<const W: usize, WIRE: Wire> {
     wire: WIRE,
 }
@@ -30,6 +32,7 @@ impl<const W: usize, WIRE: Wire> Bus<W> for FanoutBus<W, WIRE> {
 }
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 pub struct ConstBus<const W: usize> {
     values: [LogicalWireState; W],
 }
