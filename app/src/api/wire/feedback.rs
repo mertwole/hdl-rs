@@ -1,34 +1,31 @@
-use autoimpl_operators::WireBitwiseOps;
+use std::{cell::RefCell, rc::Rc};
 
-use crate::api::wire::WireNoCopy;
+use autoimpl_operators::WireBitwiseOps;
 
 use super::{Wire, WireState};
 
-pub struct FeedbackWireInput {
-    wire: Option<Box<dyn WireNoCopy>>,
-}
-
 #[derive(Clone, Copy, WireBitwiseOps)]
-pub struct FeedbackWireOutput {}
+pub struct FeedbackWireOutput {
+    // TODO: Store it in static var.
+    //eval: Rc<RefCell<Option<Box<dyn Fn() -> WireState>>>>,
+}
 
 impl FeedbackWireOutput {
     pub fn new() -> Self {
-        Self {}
+        Self {
+           // eval: Rc::default(),
+        }
     }
 
-    pub fn create_input(self) -> FeedbackWireInput {
-        FeedbackWireInput { wire: None }
+    pub fn set_value<W: Wire + 'static>(&mut self, wire: W) {
+        //let eval = move || wire.eval();
+        //self.eval.borrow_mut().replace(Box::from(eval));
     }
 }
 
 impl Wire for FeedbackWireOutput {
     fn eval(&self) -> super::WireState {
+        //self.eval.borrow().as_ref().unwrap()()
         todo!()
-    }
-}
-
-impl FeedbackWireInput {
-    pub fn set_value<W: WireNoCopy>(&mut self, wire: W) {
-        self.wire = Some(Box::from(wire));
     }
 }

@@ -39,7 +39,7 @@ fn main() {
         state: WireState::One,
     };
 
-    let _out = module_example_with_feedback(InputWireWrapper(a), InputWireWrapper(b));
+    let _out = module_example_with_feedback(InputWireWrapper(a));
 }
 
 #[derive(Clone, Copy, Debug, WireBitwiseOps)]
@@ -122,18 +122,11 @@ fn module_example_with_buses<A: InputBus<8>, B: InputBus<8>>(
     concat!(a_left, a_middle_inv, a_right, b)
 }
 
-fn module_example_with_feedback<A: InputWire + 'static, B: InputWire + 'static>(
-    a: InputWireWrapper<A>,
-    b: InputWireWrapper<B>,
-) -> impl Wire {
-    let c = a & b;
+fn module_example_with_feedback<A: InputWire + 'static>(a: InputWireWrapper<A>) -> impl Wire {
+    let mut feedback = FeedbackWireOutput::new();
+    let and = a & feedback;
+    let ff = FlipFlop::new(and, ConstZeroWire {}, ConstZeroWire {}, ConstZeroWire {});
+    feedback.set_value(ff);
 
-    let feedback = FeedbackWireOutput::new();
-    let d = feedback & c;
-
-    let mut feedback_input = feedback.create_input();
-
-    feedback_input.set_value(d);
-
-    d
+    ff
 }
