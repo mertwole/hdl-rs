@@ -5,11 +5,24 @@ use autoimpl_operators::WireBitwiseOps;
 mod operations;
 pub use operations::*;
 
+mod feedback;
+pub use feedback::*;
+
 #[cfg(test)]
 pub mod mock;
 
 pub trait Wire: Clone + Copy {
     fn eval(&self) -> WireState;
+}
+
+pub trait WireNoCopy: 'static {
+    fn eval(&self) -> WireState;
+}
+
+impl<W: Wire + 'static> WireNoCopy for W {
+    fn eval(&self) -> WireState {
+        todo!()
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

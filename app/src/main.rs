@@ -31,6 +31,15 @@ fn main() {
     };
 
     let _out_bus = module_example_with_buses(InputBusWrapper(bus_1), InputBusWrapper(bus_2));
+
+    let a = TestInput {
+        state: WireState::Zero,
+    };
+    let b = TestInput {
+        state: WireState::One,
+    };
+
+    let _out = module_example_with_feedback(InputWireWrapper(a), InputWireWrapper(b));
 }
 
 #[derive(Clone, Copy, Debug, WireBitwiseOps)]
@@ -111,4 +120,20 @@ fn module_example_with_buses<A: InputBus<8>, B: InputBus<8>>(
     let a_middle_inv = !a_middle;
 
     concat!(a_left, a_middle_inv, a_right, b)
+}
+
+fn module_example_with_feedback<A: InputWire + 'static, B: InputWire + 'static>(
+    a: InputWireWrapper<A>,
+    b: InputWireWrapper<B>,
+) -> impl Wire {
+    let c = a & b;
+
+    let feedback = FeedbackWireOutput::new();
+    let d = feedback & c;
+
+    let mut feedback_input = feedback.create_input();
+
+    feedback_input.set_value(d);
+
+    d
 }
