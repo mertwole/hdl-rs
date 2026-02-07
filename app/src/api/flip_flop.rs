@@ -40,7 +40,7 @@ impl<D: Wire, C: Wire, R: Wire, S: Wire> Wire for FlipFlop<D, C, R, S> {
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-struct FlipFlopBus<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> {
+pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> {
     current_state: [WireState; W],
 
     data: D,

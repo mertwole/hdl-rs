@@ -1,6 +1,11 @@
-use crate::api::prelude::{Wire, WireState};
+use autoimpl_operators::WireBitwiseOps;
 
-#[derive(Clone, Copy)]
+use crate::api::{
+    prelude::{Wire, WireState},
+    wire::InputWire,
+};
+
+#[derive(Clone, Copy, WireBitwiseOps)]
 pub struct MockWire(WireState);
 
 impl MockWire {
@@ -14,3 +19,22 @@ impl Wire for MockWire {
         self.0
     }
 }
+
+#[derive(Clone, Copy, Debug, WireBitwiseOps)]
+pub struct MockInput {
+    state: WireState,
+}
+
+impl MockInput {
+    pub fn new(state: WireState) -> Self {
+        Self { state }
+    }
+}
+
+impl Wire for MockInput {
+    fn eval(&self) -> WireState {
+        self.state
+    }
+}
+
+impl InputWire for MockInput {}

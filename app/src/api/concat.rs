@@ -8,7 +8,7 @@ macro_rules! concat {
         $crate::api::concat::ToBus::to_bus($only_one)
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::api::concat::ToBus::to_bus($first).append_bus_right(concat!($($rest),*))
+        $crate::api::concat::ToBus::to_bus($first).append_bus_right($crate::concat!($($rest),*))
     };
 }
 

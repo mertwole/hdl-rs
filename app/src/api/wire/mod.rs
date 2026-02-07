@@ -5,6 +5,9 @@ use autoimpl_operators::WireBitwiseOps;
 mod operations;
 pub use operations::*;
 
+mod feedback;
+pub use feedback::*;
+
 #[cfg(test)]
 pub mod mock;
 

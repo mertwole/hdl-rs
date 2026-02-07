@@ -4,20 +4,20 @@ use autoimpl_operators::WireBitwiseOps;
 use crate::api::prelude::*;
 
 pub trait LogicOps: Wire {
-    fn and<R: Wire>(&self, rhs: R) -> WireAnd<Self, R> {
-        WireAnd { lhs: *self, rhs }
+    fn and<R: Wire>(self, rhs: R) -> WireAnd<Self, R> {
+        WireAnd { lhs: self, rhs }
     }
 
-    fn or<R: Wire>(&self, rhs: R) -> WireOr<Self, R> {
-        WireOr { lhs: *self, rhs }
+    fn or<R: Wire>(self, rhs: R) -> WireOr<Self, R> {
+        WireOr { lhs: self, rhs }
     }
 
-    fn xor<R: Wire>(&self, rhs: R) -> WireXor<Self, R> {
-        WireXor { lhs: *self, rhs }
+    fn xor<R: Wire>(self, rhs: R) -> WireXor<Self, R> {
+        WireXor { lhs: self, rhs }
     }
 
-    fn not(&self) -> WireNot<Self> {
-        WireNot { wire: *self }
+    fn not(self) -> WireNot<Self> {
+        WireNot { wire: self }
     }
 }
 
