@@ -1,31 +1,64 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, sync::OnceLock};
 
 use autoimpl_operators::WireBitwiseOps;
 
 use super::{Wire, WireState};
 
+static FEEDBACK_REGISTRY: OnceLock<FeedbackRegistry> = OnceLock::new();
+
+struct FeedbackRegistry {
+    eval_fns: Rc<RefCell<Vec<Option<Box<dyn Fn() -> WireState>>>>>,
+}
+
+unsafe impl Send for FeedbackRegistry {}
+unsafe impl Sync for FeedbackRegistry {}
+
+impl FeedbackRegistry {
+    fn new() -> Self {
+        Self {
+            eval_fns: Default::default(),
+        }
+    }
+
+    fn allocate_id(&self) -> usize {
+        self.eval_fns.borrow_mut().push(None);
+        self.eval_fns.borrow().len() - 1
+    }
+}
+
 #[derive(Clone, Copy, WireBitwiseOps)]
 pub struct FeedbackWireOutput {
-    // TODO: Store it in static var.
-    //eval: Rc<RefCell<Option<Box<dyn Fn() -> WireState>>>>,
+    id: usize,
 }
 
 impl FeedbackWireOutput {
     pub fn new() -> Self {
-        Self {
-           // eval: Rc::default(),
-        }
+        let id = FEEDBACK_REGISTRY
+            .get_or_init(FeedbackRegistry::new)
+            .allocate_id();
+
+        Self { id }
     }
 
     pub fn set_value<W: Wire + 'static>(&mut self, wire: W) {
-        //let eval = move || wire.eval();
-        //self.eval.borrow_mut().replace(Box::from(eval));
+        let registry = FEEDBACK_REGISTRY.get().expect(
+            "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
+        );
+        let eval = Box::from(move || wire.eval());
+        registry.eval_fns.borrow_mut()[self.id] = Some(eval);
     }
 }
 
 impl Wire for FeedbackWireOutput {
     fn eval(&self) -> super::WireState {
-        //self.eval.borrow().as_ref().unwrap()()
-        todo!()
+        let registry = FEEDBACK_REGISTRY.get().expect(
+            "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
+        );
+        let eval_fns = &registry.eval_fns.borrow()[..];
+        let eval = eval_fns[self.id]
+            .as_ref()
+            .expect("TODO: Restrict not using the set_value");
+
+        eval()
     }
 }
