@@ -1,8 +1,12 @@
 use crate::api::prelude::*;
 
-mod operations;
 use autoimpl_operators::derive_bus_bitwise_ops;
+
+mod operations;
 pub use operations::*;
+
+mod feedback;
+pub use feedback::*;
 
 #[cfg(test)]
 pub mod mock;
