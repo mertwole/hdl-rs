@@ -29,9 +29,7 @@ impl TypeInfo {
                 type Output = crate::api::wire::WireNot<#name #ty_generics>;
 
                 fn not(self) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.not()
+                    crate::api::wire::LogicOps::not(self)
                 }
             }
 
@@ -39,9 +37,7 @@ impl TypeInfo {
                 type Output = crate::api::wire::WireAnd<#name #ty_generics, _T>;
 
                 fn bitand(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.and(rhs)
+                    crate::api::wire::LogicOps::and(self, rhs)
                 }
             }
 
@@ -49,9 +45,7 @@ impl TypeInfo {
                 type Output = crate::api::wire::WireOr<#name #ty_generics, _T>;
 
                 fn bitor(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.or(rhs)
+                    crate::api::wire::LogicOps::or(self, rhs)
                 }
             }
 
@@ -59,9 +53,7 @@ impl TypeInfo {
                 type Output = crate::api::wire::WireXor<#name #ty_generics, _T>;
 
                 fn bitxor(self, rhs: _T) -> Self::Output {
-                    use crate::api::wire::LogicOps;
-
-                    self.xor(rhs)
+                    crate::api::wire::LogicOps::xor(self, rhs)
                 }
             }
         }
