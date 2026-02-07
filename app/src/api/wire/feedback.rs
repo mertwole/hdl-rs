@@ -40,7 +40,7 @@ impl FeedbackWireOutput {
         Self { id }
     }
 
-    pub fn set_value<W: Wire + 'static>(&mut self, wire: W) {
+    pub fn set_value<W: Wire + 'static>(&self, wire: W) {
         let registry = FEEDBACK_REGISTRY.get().expect(
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
         );
@@ -63,4 +63,16 @@ impl Wire for FeedbackWireOutput {
     }
 }
 
-// TODO: Add tests.
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::wire::mock::*;
+
+    #[test]
+    fn test_feedback_evals_correctly() {
+        let feedback = FeedbackWireOutput::new();
+        let wire = MockWire::new(WireState::One);
+        feedback.set_value(wire);
+        assert_eq!(feedback.eval(), WireState::One)
+    }
+}
