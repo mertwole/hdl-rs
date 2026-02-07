@@ -51,7 +51,7 @@ mod tests {
 
         let a = MockInput::new(WireState::Zero);
 
-        let _out = module_example_with_feedback(InputWireWrapper(a));
+        let _out = module_example_with_feedback_wire(InputWireWrapper(a));
     }
 
     fn module_example<A: InputWire, B: InputWire, C: InputWire>(
@@ -82,10 +82,28 @@ mod tests {
         super::concat!(a_left, a_middle_inv, a_right, b)
     }
 
-    fn module_example_with_feedback<A: InputWire + 'static>(a: InputWireWrapper<A>) -> impl Wire {
-        let mut feedback = FeedbackWireOutput::new();
+    fn module_example_with_feedback_wire<A: InputWire + 'static>(
+        a: InputWireWrapper<A>,
+    ) -> impl Wire {
+        let feedback = FeedbackWireOutput::new();
         let and = a & feedback;
         let ff = FlipFlop::new(and, ConstZeroWire {}, ConstZeroWire {}, ConstZeroWire {});
+        feedback.set_value(ff);
+
+        ff
+    }
+
+    fn module_example_with_feedback_bus<A: InputBus<2> + 'static>(
+        a: InputBusWrapper<2, A>,
+    ) -> impl Bus<2> {
+        let feedback = FeedbackBusOutput::new();
+        let and = a & feedback;
+        let ff = FlipFlopBus::new(
+            and,
+            ConstZeroWire {},
+            ConstBus::new([LogicalWireState::Zero; 2]),
+            ConstBus::new([LogicalWireState::Zero; 2]),
+        );
         feedback.set_value(ff);
 
         ff
