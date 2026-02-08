@@ -42,11 +42,20 @@ impl<const W: usize> FeedbackOutput<W> {
         Self { id }
     }
 
-    pub fn set_value<B: Bus<W> + 'static>(&self, bus: B) {
+    pub fn set_value<const WIDTH: usize, BC: Bus<WIDTH>, BI: Bus<W> + 'static>(
+        &self,
+        _connected_to: BC,
+        input: BI,
+    ) {
+        assert!(
+            BC::COMBINATIONAL_NETWORK_ID < BI::COMBINATIONAL_NETWORK_ID,
+            "Feedback loop is impossible: input and output are in the same combinatorial network"
+        );
+
         let registry = FEEDBACK_REGISTRY.get().expect(
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
         );
-        let eval = Box::from(move || bus.eval().to_vec());
+        let eval = Box::from(move || input.eval().to_vec());
         registry.eval_fns.borrow_mut()[self.id] = Some(eval);
     }
 }
@@ -76,7 +85,7 @@ mod tests {
     fn test_feedback_evals_correctly() {
         let feedback = FeedbackOutput::new();
         let bus = MockBus::new([WireState::One, WireState::Zero]);
-        feedback.set_value(bus);
+        feedback.set_value(bus, bus);
         assert_eq!(feedback.eval(), [WireState::One, WireState::Zero])
     }
 }

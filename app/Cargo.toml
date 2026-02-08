@@ -6,3 +6,5 @@ authors.workspace = true
 
 [dependencies]
 autoimpl-operators.workspace = true
+
+static_assertions.workspace = true

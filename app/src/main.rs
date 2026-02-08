@@ -63,7 +63,7 @@ mod tests {
             ConstBus::new([LogicalWireState::Zero; 2]),
             ConstBus::new([LogicalWireState::Zero; 2]),
         );
-        feedback.set_value(ff);
+        feedback.set_value(and, ff);
 
         ff
     }
