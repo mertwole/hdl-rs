@@ -14,5 +14,4 @@ app = { path = "./app" }
 itertools = "0.14.0"
 proc-macro2 = "1.0.106"
 quote = "1.0.44"
-static_assertions = "1.1.0"
 syn = "2.0.114"
