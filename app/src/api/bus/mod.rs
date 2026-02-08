@@ -12,6 +12,8 @@ pub use feedback::*;
 pub mod mock;
 
 pub trait Bus<const W: usize>: Clone + Copy {
+    const COMBINATIONAL_NETWORK_ID: usize;
+
     fn eval(self) -> [WireState; W];
 }
 
@@ -30,6 +32,8 @@ impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {
 }
 
 impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
+    const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
+
     fn eval(self) -> [WireState; W] {
         [self.wire.eval()[0]; W]
     }
@@ -48,6 +52,8 @@ impl<const W: usize> ConstBus<W> {
 }
 
 impl<const W: usize> Bus<W> for ConstBus<W> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
     fn eval(self) -> [WireState; W] {
         self.values.map(From::from)
     }

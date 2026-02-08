@@ -13,6 +13,8 @@ fn main() {}
 struct InputBusWrapper<const W: usize, B: Bus<W>>(B);
 
 impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
     fn eval(self) -> [WireState; W] {
         self.0.eval()
     }
@@ -61,7 +63,7 @@ mod tests {
             ConstBus::new([LogicalWireState::Zero; 2]),
             ConstBus::new([LogicalWireState::Zero; 2]),
         );
-        feedback.set_value(ff);
+        feedback.set_value(and, ff);
 
         ff
     }

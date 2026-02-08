@@ -58,6 +58,8 @@ pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usi
 impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH>
     for SubBus<W, B, FROM, WIDTH>
 {
+    const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
+
     fn eval(self) -> [WireState; WIDTH] {
         self.bus.eval()[FROM..FROM + WIDTH]
             .try_into()
@@ -75,6 +77,9 @@ pub struct BusConcat<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>>
 impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }>
     for BusConcat<W1, B1, W2, B2>
 {
+    const COMBINATIONAL_NETWORK_ID: usize =
+        usize_min(B1::COMBINATIONAL_NETWORK_ID, B2::COMBINATIONAL_NETWORK_ID);
+
     fn eval(self) -> [WireState; W1 + W2] {
         [&self.lhs.eval()[..], &self.rhs.eval()[..]]
             .concat()
@@ -91,6 +96,9 @@ pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
+    const COMBINATIONAL_NETWORK_ID: usize =
+        usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
+
     fn eval(self) -> [WireState; W] {
         let lhs = self.lhs.eval();
         let rhs = self.rhs.eval();
@@ -108,6 +116,9 @@ pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
+    const COMBINATIONAL_NETWORK_ID: usize =
+        usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
+
     fn eval(self) -> [WireState; W] {
         let lhs = self.lhs.eval();
         let rhs = self.rhs.eval();
@@ -125,6 +136,9 @@ pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
+    const COMBINATIONAL_NETWORK_ID: usize =
+        usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
+
     fn eval(self) -> [WireState; W] {
         let lhs = self.lhs.eval();
         let rhs = self.rhs.eval();
@@ -141,6 +155,8 @@ pub struct BusNot<const W: usize, B: Bus<W>> {
 }
 
 impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
+    const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
+
     fn eval(self) -> [WireState; W] {
         self.bus.eval().map(|value| value.not())
     }
@@ -153,6 +169,8 @@ pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
 }
 
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S> {
+    const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
+
     fn eval(self) -> [WireState; W] {
         let value = self.bus.eval();
 
@@ -170,6 +188,8 @@ pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
 }
 
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S> {
+    const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
+
     fn eval(self) -> [WireState; W] {
         let value = self.bus.eval();
 
@@ -184,6 +204,10 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S>
             .collect();
         result.try_into().expect("Checked to match the length")
     }
+}
+
+const fn usize_min(lhs: usize, rhs: usize) -> usize {
+    if lhs < rhs { lhs } else { rhs }
 }
 
 #[cfg(test)]

@@ -45,7 +45,22 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, 
 impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> Bus<W>
     for FlipFlopBus<W, D, C, R, S>
 {
+    const COMBINATIONAL_NETWORK_ID: usize = 1 + usize_min_4(
+        D::COMBINATIONAL_NETWORK_ID,
+        C::COMBINATIONAL_NETWORK_ID,
+        R::COMBINATIONAL_NETWORK_ID,
+        S::COMBINATIONAL_NETWORK_ID,
+    );
+
     fn eval(self) -> [WireState; W] {
         self.current_state
     }
+}
+
+const fn usize_min_4(a: usize, b: usize, c: usize, d: usize) -> usize {
+    usize_min(usize_min(a, b), usize_min(c, d))
+}
+
+const fn usize_min(lhs: usize, rhs: usize) -> usize {
+    if lhs < rhs { lhs } else { rhs }
 }
