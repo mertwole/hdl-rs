@@ -42,6 +42,7 @@ impl<const W: usize> FeedbackOutput<W> {
         Self { id }
     }
 
+    /// `_connected_to`: Bus which this `FeedbackOutput` is connected to as an input.
     pub fn set_value<const WIDTH: usize, BC: Bus<WIDTH>, BI: Bus<W> + 'static>(
         &self,
         _connected_to: BC,
@@ -79,13 +80,34 @@ impl<const W: usize> Bus<W> for FeedbackOutput<W> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::api::bus::mock::*;
+
+    #[derive(Clone, Copy)]
+    struct MockBus {}
+
+    impl Bus<2> for MockBus {
+        const COMBINATIONAL_NETWORK_ID: usize = 2;
+
+        fn eval(self) -> [WireState; 2] {
+            [WireState::Zero, WireState::One]
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    struct MockFeedbackOutputBus {}
+
+    impl Bus<2> for MockFeedbackOutputBus {
+        const COMBINATIONAL_NETWORK_ID: usize = 0;
+
+        fn eval(self) -> [WireState; 2] {
+            unimplemented!()
+        }
+    }
 
     #[test]
     fn test_feedback_evals_correctly() {
         let feedback = FeedbackOutput::new();
-        let bus = MockBus::new([WireState::One, WireState::Zero]);
-        feedback.set_value(bus, bus);
-        assert_eq!(feedback.eval(), [WireState::One, WireState::Zero])
+        let bus = MockBus {};
+        feedback.set_value(MockFeedbackOutputBus {}, bus);
+        assert_eq!(feedback.eval(), bus.eval())
     }
 }
