@@ -12,7 +12,7 @@ macro_rules! concat {
 mod tests {
     use crate::api::{
         bus::{Bus, mock::*},
-        wire::WireState,
+        wire_state::WireState,
     };
 
     const BUS_1_VALUES: [WireState; 3] = [WireState::Zero, WireState::Zero, WireState::Zero];

@@ -1,11 +1,11 @@
 pub mod bus;
 pub mod concat;
 pub mod flip_flop;
-pub mod wire;
+pub mod wire_state;
 
 pub mod prelude {
     pub use super::bus::*;
     pub use super::concat::*;
     pub use super::flip_flop::*;
-    pub use super::wire::*;
+    pub use super::wire_state::*;
 }
