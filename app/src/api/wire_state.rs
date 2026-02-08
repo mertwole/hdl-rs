@@ -1,20 +1,5 @@
 use std::ops::Not;
 
-use autoimpl_operators::WireBitwiseOps;
-
-mod operations;
-pub use operations::*;
-
-mod feedback;
-pub use feedback::*;
-
-#[cfg(test)]
-pub mod mock;
-
-pub trait Wire: Clone + Copy {
-    fn eval(&self) -> WireState;
-}
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum WireState {
     One,
@@ -122,37 +107,7 @@ impl WireState {
     }
 }
 
-pub trait InputWire: Wire + Clone + Copy {}
-
-#[derive(Clone, Copy, WireBitwiseOps)]
-pub struct ConstZeroWire {}
-
-impl Wire for ConstZeroWire {
-    fn eval(&self) -> WireState {
-        WireState::Zero
-    }
-}
-
-impl ConstZeroWire {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
-#[derive(Clone, Copy, WireBitwiseOps)]
-pub struct ConstOneWire {}
-
-impl Wire for ConstOneWire {
-    fn eval(&self) -> WireState {
-        WireState::One
-    }
-}
-
-impl ConstOneWire {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
+// TODO: Implement ConstZeroWire and ConstOneWire as buses.
 
 #[cfg(test)]
 mod tests {

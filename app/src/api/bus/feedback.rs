@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc, sync::OnceLock};
 use autoimpl_operators::derive_bus_bitwise_ops;
 
 use super::Bus;
-use crate::api::wire::WireState;
+use crate::api::wire_state::WireState;
 
 static FEEDBACK_REGISTRY: OnceLock<FeedbackRegistry> = OnceLock::new();
 
@@ -29,11 +29,11 @@ impl FeedbackRegistry {
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-pub struct FeedbackBusOutput<const W: usize> {
+pub struct FeedbackOutput<const W: usize> {
     id: usize,
 }
 
-impl<const W: usize> FeedbackBusOutput<W> {
+impl<const W: usize> FeedbackOutput<W> {
     pub fn new() -> Self {
         let id = FEEDBACK_REGISTRY
             .get_or_init(FeedbackRegistry::new)
@@ -51,7 +51,7 @@ impl<const W: usize> FeedbackBusOutput<W> {
     }
 }
 
-impl<const W: usize> Bus<W> for FeedbackBusOutput<W> {
+impl<const W: usize> Bus<W> for FeedbackOutput<W> {
     fn eval(self) -> [WireState; W] {
         let registry = FEEDBACK_REGISTRY.get().expect(
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn test_feedback_evals_correctly() {
-        let feedback = FeedbackBusOutput::new();
+        let feedback = FeedbackOutput::new();
         let bus = MockBus::new([WireState::One, WireState::Zero]);
         feedback.set_value(bus);
         assert_eq!(feedback.eval(), [WireState::One, WireState::Zero])

@@ -1,69 +1,29 @@
-use autoimpl_operators::derive_bus_bitwise_ops;
-
-use crate::api::prelude::*;
-
 #[macro_export]
 macro_rules! concat {
     ($only_one:expr) => {
-        $crate::api::concat::ToBus::to_bus($only_one)
+        $only_one
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::api::concat::ToBus::to_bus($first).append_bus_right($crate::concat!($($rest),*))
+        $crate::api::bus::BusOps::append($first, ($crate::concat!($($rest),*)))
     };
-}
-
-pub trait ToBus<const W: usize, M: ToBusMarker> {
-    fn to_bus(self) -> impl Bus<W>;
-}
-
-impl<W: Wire> ToBus<1, WireToBusMarker> for W {
-    fn to_bus(self) -> impl Bus<1> {
-        SingleWireBus { wire: self }
-    }
-}
-
-impl<const W: usize, B: Bus<W>> ToBus<W, BusToBusMarker> for B {
-    fn to_bus(self) -> impl Bus<W> {
-        self
-    }
-}
-
-pub trait ToBusMarker {}
-
-pub struct WireToBusMarker {}
-impl ToBusMarker for WireToBusMarker {}
-
-pub struct BusToBusMarker {}
-impl ToBusMarker for BusToBusMarker {}
-
-#[derive(Clone, Copy)]
-#[derive_bus_bitwise_ops(1)]
-struct SingleWireBus<W: Wire> {
-    wire: W,
-}
-
-impl<W: Wire> Bus<1> for SingleWireBus<W> {
-    fn eval(self) -> [WireState; 1] {
-        [self.wire.eval()]
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::api::{bus::mock::*, wire::mock::*};
+    use crate::api::{
+        bus::{Bus, mock::*},
+        wire_state::WireState,
+    };
 
     const BUS_1_VALUES: [WireState; 3] = [WireState::Zero, WireState::Zero, WireState::Zero];
     const BUS_2_VALUES: [WireState; 3] = [WireState::One, WireState::One, WireState::One];
-    const WIRE_1_VALUE: WireState = WireState::X;
-    const WIRE_2_VALUE: WireState = WireState::Z;
+    const BUS_3_VALUES: [WireState; 3] = [WireState::X, WireState::X, WireState::X];
 
     #[test]
     fn test_concat() {
         let bus_1 = MockBus::new(BUS_1_VALUES);
         let bus_2 = MockBus::new(BUS_2_VALUES);
-        let wire_1 = MockWire::new(WIRE_1_VALUE);
-        let wire_2 = MockWire::new(WIRE_2_VALUE);
+        let bus_3 = MockBus::new(BUS_3_VALUES);
 
         let bus_bus = concat!(bus_1, bus_2);
         assert_eq!(
@@ -71,31 +31,10 @@ mod tests {
             [&BUS_1_VALUES[..], &BUS_2_VALUES[..]].concat()
         );
 
-        let bus_wire = concat!(bus_1, wire_1);
+        let bus_bus_bus = concat!(bus_1, bus_2, bus_3);
         assert_eq!(
-            bus_wire.eval().to_vec(),
-            [&BUS_1_VALUES[..], &[WIRE_1_VALUE]].concat()
-        );
-
-        let wire_bus = concat!(wire_1, bus_1);
-        assert_eq!(
-            wire_bus.eval().to_vec(),
-            [&[WIRE_1_VALUE], &BUS_1_VALUES[..]].concat()
-        );
-
-        let wire_wire = concat!(wire_1, wire_2);
-        assert_eq!(wire_wire.eval().to_vec(), [WIRE_1_VALUE, WIRE_2_VALUE]);
-
-        let wire_bus_wire_bus = concat!(wire_1, bus_1, wire_2, bus_2);
-        assert_eq!(
-            wire_bus_wire_bus.eval().to_vec(),
-            [
-                &[WIRE_1_VALUE],
-                &BUS_1_VALUES[..],
-                &[WIRE_2_VALUE],
-                &BUS_2_VALUES[..]
-            ]
-            .concat()
+            bus_bus_bus.eval().to_vec(),
+            [&BUS_1_VALUES[..], &BUS_2_VALUES[..], &BUS_3_VALUES[..]].concat()
         );
     }
 }

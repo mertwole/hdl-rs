@@ -19,19 +19,19 @@ pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-pub struct FanoutBus<const W: usize, WIRE: Wire> {
-    wire: WIRE,
+pub struct FanoutBus<const W: usize, B: Bus<1>> {
+    wire: B,
 }
 
-impl<const W: usize, WIRE: Wire> FanoutBus<W, WIRE> {
-    pub fn new(wire: WIRE) -> Self {
+impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {
+    pub fn new(wire: B) -> Self {
         Self { wire }
     }
 }
 
-impl<const W: usize, WIRE: Wire> Bus<W> for FanoutBus<W, WIRE> {
+impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
     fn eval(self) -> [WireState; W] {
-        [self.wire.eval(); W]
+        [self.wire.eval()[0]; W]
     }
 }
 
