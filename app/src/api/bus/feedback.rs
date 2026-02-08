@@ -52,6 +52,8 @@ impl<const W: usize> FeedbackOutput<W> {
 }
 
 impl<const W: usize> Bus<W> for FeedbackOutput<W> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
     fn eval(self) -> [WireState; W] {
         let registry = FEEDBACK_REGISTRY.get().expect(
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",

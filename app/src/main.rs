@@ -13,6 +13,8 @@ fn main() {}
 struct InputBusWrapper<const W: usize, B: Bus<W>>(B);
 
 impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
     fn eval(self) -> [WireState; W] {
         self.0.eval()
     }
