@@ -15,11 +15,7 @@ pub trait BusOps<const W: usize>: Bus<W> {
         SubBus { bus: self }
     }
 
-    // TODO: Rename to append.
-    fn append_bus_right<const WIDTH: usize, B: Bus<WIDTH>>(
-        self,
-        bus: B,
-    ) -> BusConcat<W, Self, WIDTH, B> {
+    fn append<const WIDTH: usize, B: Bus<WIDTH>>(self, bus: B) -> BusConcat<W, Self, WIDTH, B> {
         BusConcat {
             lhs: self,
             rhs: bus,
@@ -229,7 +225,7 @@ mod tests {
 
         let bus_1 = MockBus::new(VALUES);
         let bus_2 = MockBus::new(bus_2_values);
-        let appended = bus_1.append_bus_right(bus_2);
+        let appended = bus_1.append(bus_2);
 
         assert_eq!(
             appended.eval().to_vec(),

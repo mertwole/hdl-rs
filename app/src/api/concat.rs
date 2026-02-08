@@ -4,7 +4,7 @@ macro_rules! concat {
         $only_one
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::api::bus::BusOps::append_bus_right($first, ($crate::concat!($($rest),*)))
+        $crate::api::bus::BusOps::append($first, ($crate::concat!($($rest),*)))
     };
 }
 

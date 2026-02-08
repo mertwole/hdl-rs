@@ -53,7 +53,7 @@ mod tests {
     fn module_example_with_feedback<A: InputBus<2> + 'static>(
         a: InputBusWrapper<2, A>,
     ) -> impl Bus<2> {
-        let feedback = FeedbackBusOutput::new();
+        let feedback = FeedbackOutput::new();
         let and = a & feedback;
         let ff = FlipFlopBus::new(
             and,
