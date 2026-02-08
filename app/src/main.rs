@@ -1,21 +1,12 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use autoimpl_operators::{WireBitwiseOps, derive_bus_bitwise_ops};
+use autoimpl_operators::derive_bus_bitwise_ops;
 
 mod api;
 use api::prelude::*;
 
 fn main() {}
-
-#[derive(Clone, Copy, WireBitwiseOps)]
-struct InputWireWrapper<W: InputWire>(W);
-
-impl<W: InputWire> Wire for InputWireWrapper<W> {
-    fn eval(&self) -> WireState {
-        self.0.eval()
-    }
-}
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
@@ -29,45 +20,22 @@ impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
 
 #[cfg(test)]
 mod tests {
-    use super::{InputBusWrapper, InputWireWrapper};
-    use crate::api::{bus::mock::*, prelude::*, wire::mock::*};
+    use super::InputBusWrapper;
+    use crate::api::{bus::mock::*, prelude::*};
 
     #[test]
     fn test_finite_module_instantiation() {
-        let a = MockInput::new(WireState::Zero);
-        let b = MockInput::new(WireState::One);
-        let c = MockInput::new(WireState::Z);
+        let a = MockInputBus::new([WireState::Zero; 8]);
+        let b = MockInputBus::new([WireState::One; 8]);
 
-        let _out = module_example(
-            InputWireWrapper(a),
-            InputWireWrapper(b),
-            InputWireWrapper(c),
-        );
+        let _out = module_example(InputBusWrapper(a), InputBusWrapper(b));
 
-        let bus_1 = MockInputBus::new([WireState::Zero; 8]);
-        let bus_2 = MockInputBus::new([WireState::One; 8]);
+        let a = MockInputBus::new([WireState::Zero; 2]);
 
-        let _out_bus = module_example_with_buses(InputBusWrapper(bus_1), InputBusWrapper(bus_2));
-
-        let a = MockInput::new(WireState::Zero);
-
-        let _out = module_example_with_feedback_wire(InputWireWrapper(a));
+        let _out = module_example_with_feedback(InputBusWrapper(a));
     }
 
-    fn module_example<A: InputWire, B: InputWire, C: InputWire>(
-        a: InputWireWrapper<A>,
-        b: InputWireWrapper<B>,
-        c: InputWireWrapper<C>,
-    ) -> impl Wire {
-        let temp_a = a & !b;
-        let temp_b = a & b;
-
-        let temp_c = temp_a & temp_b | temp_a ^ !temp_b;
-
-        temp_c.and(b).or(c).and(c).not()
-    }
-
-    fn module_example_with_buses<A: InputBus<8>, B: InputBus<8>>(
+    fn module_example<A: InputBus<8>, B: InputBus<8>>(
         a: InputBusWrapper<8, A>,
         b: InputBusWrapper<8, B>,
     ) -> impl Bus<16> {
@@ -82,18 +50,7 @@ mod tests {
         super::concat!(a_left, a_middle_inv, a_right, b)
     }
 
-    fn module_example_with_feedback_wire<A: InputWire + 'static>(
-        a: InputWireWrapper<A>,
-    ) -> impl Wire {
-        let feedback = FeedbackWireOutput::new();
-        let and = a & feedback;
-        let ff = FlipFlop::new(and, ConstZeroWire {}, ConstZeroWire {}, ConstZeroWire {});
-        feedback.set_value(ff);
-
-        ff
-    }
-
-    fn module_example_with_feedback_bus<A: InputBus<2> + 'static>(
+    fn module_example_with_feedback<A: InputBus<2> + 'static>(
         a: InputBusWrapper<2, A>,
     ) -> impl Bus<2> {
         let feedback = FeedbackBusOutput::new();
