@@ -57,7 +57,7 @@ mod tests {
         let and = a & feedback;
         let ff = FlipFlopBus::new(
             and,
-            ConstZeroWire {},
+            ConstBus::new([LogicalWireState::Zero]),
             ConstBus::new([LogicalWireState::Zero; 2]),
             ConstBus::new([LogicalWireState::Zero; 2]),
         );

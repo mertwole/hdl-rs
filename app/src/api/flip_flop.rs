@@ -3,44 +3,8 @@ use autoimpl_operators::derive_bus_bitwise_ops;
 use crate::api::prelude::*;
 
 #[derive(Clone, Copy)]
-pub struct FlipFlop<D: Wire, C: Wire, R: Wire, S: Wire> {
-    current_state: WireState,
-
-    data: D,
-    clock: C,
-    reset: R,
-    set: S,
-}
-
-impl<D: Wire, C: Wire, R: Wire, S: Wire> FlipFlop<D, C, R, S> {
-    pub fn new(data: D, clock: C, reset: R, set: S) -> Self {
-        Self {
-            current_state: WireState::X,
-            data,
-            clock,
-            reset,
-            set,
-        }
-    }
-
-    pub fn resets_to_zero(data: D, clock: C, reset_wire: R) -> FlipFlop<D, C, R, ConstZeroWire> {
-        FlipFlop::new(data, clock, reset_wire, ConstZeroWire::new())
-    }
-
-    pub fn resets_to_one(data: D, clock: C, reset_wire: S) -> FlipFlop<D, C, ConstZeroWire, S> {
-        FlipFlop::new(data, clock, ConstZeroWire::new(), reset_wire)
-    }
-}
-
-impl<D: Wire, C: Wire, R: Wire, S: Wire> Wire for FlipFlop<D, C, R, S> {
-    fn eval(&self) -> WireState {
-        self.current_state
-    }
-}
-
-#[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> {
+pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> {
     current_state: [WireState; W],
 
     data: D,
@@ -49,7 +13,7 @@ pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>>
     set: S,
 }
 
-impl<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, D, C, R, S> {
+impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, D, C, R, S> {
     pub fn new(data: D, clock: C, reset: R, set: S) -> Self {
         Self {
             current_state: [WireState::X; W],
@@ -60,10 +24,10 @@ impl<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, D,
         }
     }
 
-    pub fn resets_to_value<WIRE: Wire>(
+    pub fn resets_to_value<RST: Bus<1>>(
         data: D,
         clock: C,
-        reset_wire: WIRE,
+        reset_wire: RST,
         reset_value: [LogicalWireState; W],
     ) -> FlipFlopBus<W, D, C, impl Bus<W>, impl Bus<W>> {
         let reset_fanout = FanoutBus::new(reset_wire);
@@ -78,7 +42,7 @@ impl<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, D,
     }
 }
 
-impl<const W: usize, D: Bus<W>, C: Wire, R: Bus<W>, S: Bus<W>> Bus<W>
+impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> Bus<W>
     for FlipFlopBus<W, D, C, R, S>
 {
     fn eval(self) -> [WireState; W] {
