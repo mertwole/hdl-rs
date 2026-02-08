@@ -6,6 +6,8 @@ use autoimpl_operators::derive_bus_bitwise_ops;
 mod api;
 use api::prelude::*;
 
+mod intermediate_repr;
+
 fn main() {}
 
 #[derive(Clone, Copy)]
