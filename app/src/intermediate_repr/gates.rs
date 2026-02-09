@@ -1,28 +1,38 @@
+use crate::intermediate_repr::IntermediateRepr;
+
 use super::BusId;
 
 pub struct And {
-    lhs: BusId,
-    rhs: BusId,
+    pub lhs: BusId,
+    pub rhs: BusId,
 
-    output: BusId,
+    pub output: BusId,
 }
+
+impl IntermediateRepr for And {}
 
 pub struct Or {
-    lhs: BusId,
-    rhs: BusId,
+    pub lhs: BusId,
+    pub rhs: BusId,
 
-    output: BusId,
+    pub output: BusId,
 }
+
+impl IntermediateRepr for Or {}
 
 pub struct Xor {
-    lhs: BusId,
-    rhs: BusId,
+    pub lhs: BusId,
+    pub rhs: BusId,
 
-    output: BusId,
+    pub output: BusId,
 }
+
+impl IntermediateRepr for Xor {}
 
 pub struct Not {
-    bus: BusId,
+    pub bus: BusId,
 
-    output: BusId,
+    pub output: BusId,
 }
+
+impl IntermediateRepr for Not {}

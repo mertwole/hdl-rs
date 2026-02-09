@@ -1,10 +1,14 @@
+use crate::intermediate_repr::IntermediateRepr;
+
 use super::BusId;
 
 pub struct FlipFlop {
-    data: BusId,
-    reset: BusId,
-    set: BusId,
-    clock: BusId,
+    pub data: BusId,
+    pub reset: BusId,
+    pub set: BusId,
+    pub clock: BusId,
 
-    output: BusId,
+    pub output: BusId,
 }
+
+impl IntermediateRepr for FlipFlop {}

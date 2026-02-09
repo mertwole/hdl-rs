@@ -1,4 +1,7 @@
-use crate::api::prelude::*;
+use crate::{
+    api::prelude::*,
+    intermediate_repr::{BusId, IntermediateRepr},
+};
 
 use autoimpl_operators::derive_bus_bitwise_ops;
 
@@ -15,6 +18,10 @@ pub trait Bus<const W: usize>: Clone + Copy {
     const COMBINATIONAL_NETWORK_ID: usize;
 
     fn eval(self) -> [WireState; W];
+
+    fn get_id(self) -> BusId;
+
+    fn construct_intermediate_repr(self) -> impl IntermediateRepr;
 }
 
 pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}

@@ -1,7 +1,17 @@
 use std::sync::{Arc, Mutex, OnceLock};
 
+pub mod connections;
 pub mod flip_flop;
 pub mod gates;
+
+pub trait IntermediateRepr {}
+
+pub struct InputBus {
+    pub width: usize,
+    pub id: BusId,
+}
+
+impl IntermediateRepr for InputBus {}
 
 static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
 
@@ -17,11 +27,13 @@ impl IdRegistry {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct BusId {
     id: usize,
 }
 
 impl BusId {
+    // TODO: Rename to `new_unique`;
     pub fn new() -> Self {
         let mut id = ID_REGISTRY
             .get_or_init(IdRegistry::new)
