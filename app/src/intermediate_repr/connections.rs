@@ -15,4 +15,4 @@ pub struct BusConcat {
     pub output: BusId,
 }
 
-impl IntermediateRepr for SubBus {}
+impl IntermediateRepr for BusConcat {}

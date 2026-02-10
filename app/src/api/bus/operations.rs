@@ -1,6 +1,6 @@
 use autoimpl_operators::derive_bus_bitwise_ops;
 
-use crate::api::prelude::*;
+use crate::{api::prelude::*, intermediate_repr::BusId};
 
 pub trait BusOps<const W: usize>: Bus<W> {
     fn wire_at<const I: usize>(self) -> SubBus<W, Self, I, 1> {
@@ -93,6 +93,18 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
 pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
+
+    id: BusId,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusAnd<W, BL, BR> {
+    pub fn new(lhs: BL, rhs: BR) -> Self {
+        Self {
+            lhs,
+            rhs,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {

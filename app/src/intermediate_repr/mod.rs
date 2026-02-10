@@ -51,3 +51,11 @@ pub struct Module {
     inputs: Vec<BusId>,
     outputs: Vec<BusId>,
 }
+
+pub struct IntermediateReprBuilder {}
+
+impl IntermediateReprBuilder {
+    pub fn push_element(&mut self, element: impl IntermediateRepr, id: BusId) {
+        //
+    }
+}

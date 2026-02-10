@@ -1,6 +1,6 @@
 use crate::{
     api::prelude::*,
-    intermediate_repr::{BusId, IntermediateRepr},
+    intermediate_repr::{BusId, IntermediateRepr, IntermediateReprBuilder},
 };
 
 use autoimpl_operators::derive_bus_bitwise_ops;
@@ -21,7 +21,7 @@ pub trait Bus<const W: usize>: Clone + Copy {
 
     fn get_id(self) -> BusId;
 
-    fn construct_intermediate_repr(self) -> impl IntermediateRepr;
+    fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder);
 }
 
 pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}
