@@ -118,11 +118,8 @@ mod tests {
         const WIRE_STATE_VARIANTS: [WireState; 4] =
             [WireState::Zero, WireState::One, WireState::X, WireState::Z];
 
-        for i in 0..4 {
-            for j in 0..4 {
-                let lhs = WIRE_STATE_VARIANTS[i];
-                let rhs = WIRE_STATE_VARIANTS[j];
-
+        for lhs in WIRE_STATE_VARIANTS {
+            for rhs in WIRE_STATE_VARIANTS {
                 assert_eq!(lhs.and(rhs), rhs.and(lhs));
                 assert_eq!(lhs.or(rhs), rhs.or(lhs));
                 assert_eq!(lhs.xor(rhs), rhs.xor(lhs));

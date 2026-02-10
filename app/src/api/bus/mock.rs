@@ -28,7 +28,7 @@ impl<const W: usize> Bus<W> for MockBus<W> {
         BusId::mock()
     }
 
-    fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
+    fn build_intermediate_repr(self, _builder: &mut IntermediateReprBuilder) {
         unimplemented!()
     }
 }
@@ -56,7 +56,7 @@ impl<const W: usize> Bus<W> for MockInputBus<W> {
         BusId::mock()
     }
 
-    fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
+    fn build_intermediate_repr(self, _builder: &mut IntermediateReprBuilder) {
         unimplemented!()
     }
 }

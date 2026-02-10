@@ -3,6 +3,7 @@ pub mod concat;
 pub mod flip_flop;
 pub mod wire_state;
 
+#[allow(unused_imports)]
 pub mod prelude {
     pub use super::bus::*;
     pub use super::concat::*;

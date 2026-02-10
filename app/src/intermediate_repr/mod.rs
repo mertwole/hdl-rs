@@ -76,11 +76,8 @@ pub struct IntermediateReprBuilder {
 
 impl IntermediateReprBuilder {
     pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
-        match self.nodes.entry(id) {
-            Entry::Vacant(entry) => {
-                entry.insert(Box::from(element));
-            }
-            _ => {}
+        if let Entry::Vacant(entry) = self.nodes.entry(id) {
+            entry.insert(Box::from(element));
         }
     }
 }
