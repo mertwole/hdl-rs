@@ -1,5 +1,6 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![allow(dead_code)]
 
 use autoimpl_operators::derive_bus_bitwise_ops;
 

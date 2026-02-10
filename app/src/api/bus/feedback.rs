@@ -7,8 +7,10 @@ use crate::{api::wire_state::WireState, intermediate_repr::BusId};
 
 static FEEDBACK_REGISTRY: OnceLock<FeedbackRegistry> = OnceLock::new();
 
+type EvalFn = Box<dyn Fn() -> Vec<WireState>>;
+
 struct FeedbackRegistry {
-    eval_fns: Rc<RefCell<Vec<Option<Box<dyn Fn() -> Vec<WireState>>>>>>,
+    eval_fns: Rc<RefCell<Vec<Option<EvalFn>>>>,
 }
 
 unsafe impl Send for FeedbackRegistry {}
@@ -85,7 +87,7 @@ impl<const W: usize> Bus<W> for FeedbackOutput<W> {
 
     fn build_intermediate_repr(
         self,
-        builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+        _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
     ) {
     }
 }
@@ -110,7 +112,7 @@ mod tests {
 
         fn build_intermediate_repr(
             self,
-            builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+            _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
         ) {
             unimplemented!()
         }
@@ -132,7 +134,7 @@ mod tests {
 
         fn build_intermediate_repr(
             self,
-            builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+            _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
         ) {
             unimplemented!()
         }

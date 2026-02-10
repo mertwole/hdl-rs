@@ -1,6 +1,6 @@
 use crate::{
     api::prelude::*,
-    intermediate_repr::{self, BusId, IntermediateRepr, IntermediateReprBuilder},
+    intermediate_repr::{self, BusId, IntermediateReprBuilder},
 };
 
 use autoimpl_operators::derive_bus_bitwise_ops;
@@ -9,6 +9,7 @@ mod operations;
 pub use operations::*;
 
 mod feedback;
+#[allow(unused_imports)]
 pub use feedback::*;
 
 #[cfg(test)]
