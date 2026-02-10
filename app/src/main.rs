@@ -6,17 +6,41 @@ use autoimpl_operators::derive_bus_bitwise_ops;
 mod api;
 use api::prelude::*;
 
+use crate::intermediate_repr::BusId;
+
+mod intermediate_repr;
+
 fn main() {}
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-struct InputBusWrapper<const W: usize, B: Bus<W>>(B);
+struct InputBusWrapper<const W: usize, B: Bus<W>> {
+    bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: Bus<W>> InputBusWrapper<W, B> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new(),
+        }
+    }
+}
 
 impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
 
     fn eval(self) -> [WireState; W] {
-        self.0.eval()
+        self.bus.eval()
+    }
+
+    fn get_id(self) -> BusId {
+        self.bus.get_id()
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        self.bus.build_intermediate_repr(builder);
     }
 }
 
@@ -30,11 +54,11 @@ mod tests {
         let a = MockInputBus::new([WireState::Zero; 8]);
         let b = MockInputBus::new([WireState::One; 8]);
 
-        let _out = module_example(InputBusWrapper(a), InputBusWrapper(b));
+        let _out = module_example(InputBusWrapper::new(a), InputBusWrapper::new(b));
 
         let a = MockInputBus::new([WireState::Zero; 2]);
 
-        let _out = module_example_with_feedback(InputBusWrapper(a));
+        let _out = module_example_with_feedback(InputBusWrapper::new(a));
     }
 
     fn module_example<A: InputBus<8>, B: InputBus<8>>(
@@ -55,7 +79,7 @@ mod tests {
     fn module_example_with_feedback<A: InputBus<2> + 'static>(
         a: InputBusWrapper<2, A>,
     ) -> impl Bus<2> {
-        let feedback = FeedbackOutput::new();
+        let mut feedback = FeedbackOutput::new();
         let and = a & feedback;
         let ff = FlipFlopBus::new(
             and,
