@@ -1,6 +1,9 @@
 use autoimpl_operators::derive_bus_bitwise_ops;
 
-use crate::api::prelude::*;
+use crate::{
+    api::prelude::*,
+    intermediate_repr::{self, BusId},
+};
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
@@ -11,6 +14,8 @@ pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W
     clock: C,
     reset: R,
     set: S,
+
+    id: BusId,
 }
 
 impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, D, C, R, S> {
@@ -21,6 +26,8 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, 
             clock,
             reset,
             set,
+
+            id: BusId::new(),
         }
     }
 
@@ -54,6 +61,31 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> Bus<W>
 
     fn eval(self) -> [WireState; W] {
         self.current_state
+    }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(
+        self,
+        builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+    ) {
+        builder.push_element(
+            intermediate_repr::flip_flop::FlipFlop {
+                data: self.data.get_id(),
+                reset: self.reset.get_id(),
+                set: self.set.get_id(),
+                clock: self.clock.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.data.build_intermediate_repr(builder);
+        self.reset.build_intermediate_repr(builder);
+        self.set.build_intermediate_repr(builder);
+        self.clock.build_intermediate_repr(builder);
     }
 }
 

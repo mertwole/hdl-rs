@@ -1,10 +1,13 @@
 use autoimpl_operators::derive_bus_bitwise_ops;
 
-use crate::{api::prelude::*, intermediate_repr::BusId};
+use crate::{
+    api::prelude::*,
+    intermediate_repr::{self, BusId},
+};
 
 pub trait BusOps<const W: usize>: Bus<W> {
     fn wire_at<const I: usize>(self) -> SubBus<W, Self, I, 1> {
-        SubBus { bus: self }
+        SubBus::new(self)
     }
 
     fn sub_bus<const FROM: usize, const TO: usize>(self) -> SubBus<W, Self, FROM, { TO - FROM }>
@@ -12,38 +15,35 @@ pub trait BusOps<const W: usize>: Bus<W> {
         [(); TO - FROM]:,
         [(); W - TO]:,
     {
-        SubBus { bus: self }
+        SubBus::new(self)
     }
 
     fn append<const WIDTH: usize, B: Bus<WIDTH>>(self, bus: B) -> BusConcat<W, Self, WIDTH, B> {
-        BusConcat {
-            lhs: self,
-            rhs: bus,
-        }
+        BusConcat::new(self, bus)
     }
 
     fn and<RB: Bus<W>>(self, rhs: RB) -> BusAnd<W, Self, RB> {
-        BusAnd { lhs: self, rhs }
+        BusAnd::new(self, rhs)
     }
 
     fn or<RB: Bus<W>>(self, rhs: RB) -> BusOr<W, Self, RB> {
-        BusOr { lhs: self, rhs }
+        BusOr::new(self, rhs)
     }
 
     fn xor<RB: Bus<W>>(self, rhs: RB) -> BusXor<W, Self, RB> {
-        BusXor { lhs: self, rhs }
+        BusXor::new(self, rhs)
     }
 
     fn not(self) -> BusNot<W, Self> {
-        BusNot { bus: self }
+        BusNot::new(self)
     }
 
     fn lshift<const S: usize>(self) -> BusShiftLeft<W, Self, S> {
-        BusShiftLeft { bus: self }
+        BusShiftLeft::new(self)
     }
 
     fn rshift<const S: usize>(self) -> BusShiftRight<W, Self, S> {
-        BusShiftRight { bus: self }
+        BusShiftRight::new(self)
     }
 }
 
@@ -53,6 +53,16 @@ impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 #[derive_bus_bitwise_ops(WIDTH)]
 pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> {
     bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> SubBus<W, B, FROM, WIDTH> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH>
@@ -65,6 +75,24 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
             .try_into()
             .expect("Checked to match the width")
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::connections::SubBus {
+                input: self.bus.get_id(),
+                from: FROM,
+                to: FROM + WIDTH,
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.bus.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -72,6 +100,17 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
 pub struct BusConcat<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> {
     lhs: B1,
     rhs: B2,
+    id: BusId,
+}
+
+impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> BusConcat<W1, B1, W2, B2> {
+    pub fn new(lhs: B1, rhs: B2) -> Self {
+        Self {
+            lhs,
+            rhs,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }>
@@ -85,6 +124,24 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
             .concat()
             .try_into()
             .expect("Checked to match the width")
+    }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::connections::BusConcat {
+                lhs: self.lhs.get_id(),
+                rhs: self.rhs.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.lhs.build_intermediate_repr(builder);
+        self.rhs.build_intermediate_repr(builder);
     }
 }
 
@@ -118,6 +175,24 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
         let result: Vec<_> = (0..W).map(|i| lhs[i].and(rhs[i])).collect();
         result.try_into().expect("Checked to match the length")
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::gates::And {
+                lhs: self.lhs.get_id(),
+                rhs: self.rhs.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.lhs.build_intermediate_repr(builder);
+        self.rhs.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -125,6 +200,17 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
 pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
+    id: BusId,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusOr<W, BL, BR> {
+    pub fn new(lhs: BL, rhs: BR) -> Self {
+        Self {
+            lhs,
+            rhs,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
@@ -138,6 +224,24 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
         let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
         result.try_into().expect("Checked to match the length")
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::gates::Or {
+                lhs: self.lhs.get_id(),
+                rhs: self.rhs.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.lhs.build_intermediate_repr(builder);
+        self.rhs.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -145,6 +249,17 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
 pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
+    id: BusId,
+}
+
+impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusXor<W, BL, BR> {
+    pub fn new(lhs: BL, rhs: BR) -> Self {
+        Self {
+            lhs,
+            rhs,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
@@ -158,12 +273,40 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
         let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
         result.try_into().expect("Checked to match the length")
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::gates::Xor {
+                lhs: self.lhs.get_id(),
+                rhs: self.rhs.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.lhs.build_intermediate_repr(builder);
+        self.rhs.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 pub struct BusNot<const W: usize, B: Bus<W>> {
     bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: Bus<W>> BusNot<W, B> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
@@ -172,12 +315,38 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
     fn eval(self) -> [WireState; W] {
         self.bus.eval().map(|value| value.not())
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::gates::Not {
+                bus: self.bus.get_id(),
+                output: self.id,
+            },
+            self.id,
+        );
+
+        self.bus.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
     bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> BusShiftRight<W, B, S> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S> {
@@ -191,12 +360,42 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S
             .collect();
         result.try_into().expect("Checked to match the length")
     }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(
+        self,
+        builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+    ) {
+        builder.push_element(
+            intermediate_repr::connections::BusShiftLeft {
+                input: self.bus.get_id(),
+                output: self.id,
+                shift: S,
+            },
+            self.id,
+        );
+
+        self.bus.build_intermediate_repr(builder);
+    }
 }
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
     bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: Bus<W>, const S: usize> BusShiftLeft<W, B, S> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new(),
+        }
+    }
 }
 
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S> {
@@ -215,6 +414,26 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S>
             })
             .collect();
         result.try_into().expect("Checked to match the length")
+    }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(
+        self,
+        builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
+    ) {
+        builder.push_element(
+            intermediate_repr::connections::BusShiftLeft {
+                input: self.bus.get_id(),
+                output: self.id,
+                shift: S,
+            },
+            self.id,
+        );
+
+        self.bus.build_intermediate_repr(builder);
     }
 }
 

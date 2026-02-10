@@ -16,3 +16,26 @@ pub struct BusConcat {
 }
 
 impl IntermediateRepr for BusConcat {}
+
+pub struct FanoutBus {
+    pub input: BusId,
+    pub output: BusId,
+}
+
+impl IntermediateRepr for FanoutBus {}
+
+pub struct BusShiftLeft {
+    pub input: BusId,
+    pub output: BusId,
+    pub shift: usize,
+}
+
+impl IntermediateRepr for BusShiftLeft {}
+
+pub struct BusShiftRight {
+    pub input: BusId,
+    pub output: BusId,
+    pub shift: usize,
+}
+
+impl IntermediateRepr for BusShiftRight {}

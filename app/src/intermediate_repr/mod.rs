@@ -1,5 +1,7 @@
 use std::sync::{Arc, Mutex, OnceLock};
 
+use crate::api::prelude::LogicalWireState;
+
 pub mod connections;
 pub mod flip_flop;
 pub mod gates;
@@ -12,6 +14,14 @@ pub struct InputBus {
 }
 
 impl IntermediateRepr for InputBus {}
+
+pub struct ConstBus {
+    pub width: usize,
+    pub id: BusId,
+    pub value: Vec<LogicalWireState>,
+}
+
+impl IntermediateRepr for ConstBus {}
 
 static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
 
@@ -44,6 +54,11 @@ impl BusId {
         *id += 1;
 
         Self { id: new_id }
+    }
+
+    #[cfg(test)]
+    pub fn mock() -> Self {
+        Self { id: 0 }
     }
 }
 
