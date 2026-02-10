@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex, OnceLock};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    sync::{Arc, Mutex, OnceLock},
+};
 
 use crate::api::prelude::LogicalWireState;
 
@@ -37,7 +40,7 @@ impl IdRegistry {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BusId {
     id: usize,
 }
@@ -67,10 +70,17 @@ pub struct Module {
     outputs: Vec<BusId>,
 }
 
-pub struct IntermediateReprBuilder {}
+pub struct IntermediateReprBuilder {
+    nodes: HashMap<BusId, Box<dyn IntermediateRepr>>,
+}
 
 impl IntermediateReprBuilder {
-    pub fn push_element(&mut self, element: impl IntermediateRepr, id: BusId) {
-        //
+    pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
+        match self.nodes.entry(id) {
+            Entry::Vacant(entry) => {
+                entry.insert(Box::from(element));
+            }
+            _ => {}
+        }
     }
 }
