@@ -74,11 +74,10 @@ impl<const W: usize> Bus<W> for FeedbackOutput<W> {
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
         );
         let eval_fns = &registry.eval_fns.borrow()[..];
-        let eval = eval_fns[self.id]
+        eval_fns[self.id]
             .as_ref()
-            .expect("TODO: Restrict not using the set_value");
-
-        eval().try_into().expect("Checked to match the width")
+            .map(|eval| eval().try_into().expect("Checked to match the width"))
+            .unwrap_or_else(|| [WireState::X; W])
     }
 
     fn get_id(self) -> BusId {
