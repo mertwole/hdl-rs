@@ -96,13 +96,13 @@ mod tests {
     use super::*;
 
     #[derive(Clone, Copy)]
-    struct MockBus {}
+    struct MockBus([WireState; 2]);
 
     impl Bus<2> for MockBus {
         const COMBINATIONAL_NETWORK_ID: usize = 2;
 
         fn eval(self) -> [WireState; 2] {
-            [WireState::Zero, WireState::One]
+            self.0
         }
 
         fn get_id(self) -> BusId {
@@ -142,8 +142,30 @@ mod tests {
     #[test]
     fn test_feedback_evals_correctly() {
         let mut feedback = FeedbackOutput::new();
-        let bus = MockBus {};
+        assert_eq!(feedback.eval(), [WireState::X; 2]);
+
+        let bus = MockBus([WireState::Zero, WireState::One]);
         feedback.set_value(MockFeedbackOutputBus {}, bus);
         assert_eq!(feedback.eval(), bus.eval())
+    }
+
+    #[test]
+    fn test_multiple_feedback_buses() {
+        let mut feedbacks: Vec<_> = (0..4).map(|_| FeedbackOutput::<2>::new()).collect();
+
+        let mut buses = vec![];
+        for a in [WireState::Zero, WireState::One] {
+            for b in [WireState::Zero, WireState::One] {
+                buses.push(MockBus([a, b]));
+            }
+        }
+
+        for (bus, feedback) in buses.iter().zip(feedbacks.iter_mut()) {
+            feedback.set_value(MockFeedbackOutputBus {}, *bus);
+        }
+
+        for (bus, feedback) in buses.iter().zip(feedbacks.iter_mut()) {
+            assert_eq!(feedback.eval(), bus.eval());
+        }
     }
 }
