@@ -74,11 +74,10 @@ impl<const W: usize> Bus<W> for FeedbackOutput<W> {
             "The FeedbackWireOutput is created in the `new` so OnceLock must be initialized at this point",
         );
         let eval_fns = &registry.eval_fns.borrow()[..];
-        let eval = eval_fns[self.id]
+        eval_fns[self.id]
             .as_ref()
-            .expect("TODO: Restrict not using the set_value");
-
-        eval().try_into().expect("Checked to match the width")
+            .map(|eval| eval().try_into().expect("Checked to match the width"))
+            .unwrap_or_else(|| [WireState::X; W])
     }
 
     fn get_id(self) -> BusId {
@@ -97,13 +96,13 @@ mod tests {
     use super::*;
 
     #[derive(Clone, Copy)]
-    struct MockBus {}
+    struct MockBus([WireState; 2]);
 
     impl Bus<2> for MockBus {
         const COMBINATIONAL_NETWORK_ID: usize = 2;
 
         fn eval(self) -> [WireState; 2] {
-            [WireState::Zero, WireState::One]
+            self.0
         }
 
         fn get_id(self) -> BusId {
@@ -143,8 +142,30 @@ mod tests {
     #[test]
     fn test_feedback_evals_correctly() {
         let mut feedback = FeedbackOutput::new();
-        let bus = MockBus {};
+        assert_eq!(feedback.eval(), [WireState::X; 2]);
+
+        let bus = MockBus([WireState::Zero, WireState::One]);
         feedback.set_value(MockFeedbackOutputBus {}, bus);
         assert_eq!(feedback.eval(), bus.eval())
+    }
+
+    #[test]
+    fn test_multiple_feedback_buses() {
+        let mut feedbacks: Vec<_> = (0..4).map(|_| FeedbackOutput::<2>::new()).collect();
+
+        let mut buses = vec![];
+        for a in [WireState::Zero, WireState::One] {
+            for b in [WireState::Zero, WireState::One] {
+                buses.push(MockBus([a, b]));
+            }
+        }
+
+        for (bus, feedback) in buses.iter().zip(feedbacks.iter_mut()) {
+            feedback.set_value(MockFeedbackOutputBus {}, *bus);
+        }
+
+        for (bus, feedback) in buses.iter().zip(feedbacks.iter_mut()) {
+            assert_eq!(feedback.eval(), bus.eval());
+        }
     }
 }
