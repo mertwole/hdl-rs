@@ -96,6 +96,7 @@ mod tests {
     use super::*;
 
     #[derive(Clone, Copy)]
+    #[derive_bus_bitwise_ops(2)]
     struct MockBus([WireState; 2]);
 
     impl Bus<2> for MockBus {
@@ -118,6 +119,7 @@ mod tests {
     }
 
     #[derive(Clone, Copy)]
+    #[derive_bus_bitwise_ops(2)]
     struct MockFeedbackOutputBus {}
 
     impl Bus<2> for MockFeedbackOutputBus {

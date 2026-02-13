@@ -9,6 +9,7 @@ use crate::{
 };
 
 #[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
 pub struct MockBus<const W: usize>([WireState; W]);
 
 impl<const W: usize> MockBus<W> {

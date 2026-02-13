@@ -38,6 +38,10 @@ impl TypeInfo {
         };
 
         quote! {
+            impl #impl_generics crate::api::bus::BusOpsMarker for #name #ty_generics #where_clause {
+
+            }
+
             impl #impl_generics ::std::ops::Not for #name #ty_generics #where_clause {
                 type Output = crate::api::bus::BusNot<{#width_expr}, #name #ty_generics>;
 
