@@ -30,13 +30,29 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, 
             id: BusId::new(),
         }
     }
+}
 
-    pub fn resets_to_value<RST: Bus<1>>(
+impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<1>>
+    FlipFlopBus<
+        W,
+        D,
+        C,
+        BusAnd<W, FanoutBus<W, R>, ConstBus<W>>,
+        BusAnd<W, FanoutBus<W, R>, ConstBus<W>>,
+    >
+{
+    pub fn resets_to_value(
         data: D,
         clock: C,
-        reset_wire: RST,
+        reset_wire: R,
         reset_value: [LogicalWireState; W],
-    ) -> FlipFlopBus<W, D, C, impl Bus<W>, impl Bus<W>> {
+    ) -> FlipFlopBus<
+        W,
+        D,
+        C,
+        BusAnd<W, FanoutBus<W, R>, ConstBus<W>>,
+        BusAnd<W, FanoutBus<W, R>, ConstBus<W>>,
+    > {
         let reset_fanout = FanoutBus::new(reset_wire);
 
         let set_mask = ConstBus::new(reset_value);
