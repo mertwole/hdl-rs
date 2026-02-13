@@ -30,13 +30,20 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> FlipFlopBus<W, 
             id: BusId::new(),
         }
     }
+}
 
-    pub fn resets_to_value<RST: Bus<1>>(
+type ResetsToValueResetBusType<const W: usize, R> = BusAnd<W, FanoutBus<W, R>, ConstBus<W>>;
+type ResetsToValueSetBusType<const W: usize, R> = BusAnd<W, FanoutBus<W, R>, ConstBus<W>>;
+
+impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<1>>
+    FlipFlopBus<W, D, C, ResetsToValueResetBusType<W, R>, ResetsToValueSetBusType<W, R>>
+{
+    pub fn resets_to_value(
         data: D,
         clock: C,
-        reset_wire: RST,
+        reset_wire: R,
         reset_value: [LogicalWireState; W],
-    ) -> FlipFlopBus<W, D, C, impl Bus<W>, impl Bus<W>> {
+    ) -> FlipFlopBus<W, D, C, ResetsToValueResetBusType<W, R>, ResetsToValueSetBusType<W, R>> {
         let reset_fanout = FanoutBus::new(reset_wire);
 
         let set_mask = ConstBus::new(reset_value);
@@ -95,4 +102,19 @@ const fn usize_min_4(a: usize, b: usize, c: usize, d: usize) -> usize {
 
 const fn usize_min(lhs: usize, rhs: usize) -> usize {
     if lhs < rhs { lhs } else { rhs }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn flip_flop_resets_to_values_can_infer_types() {
+        let _ = FlipFlopBus::resets_to_value(
+            ConstBus::new([LogicalWireState::Zero; 2]),
+            ConstBus::new([LogicalWireState::One]),
+            ConstBus::new([LogicalWireState::Zero]),
+            [LogicalWireState::Zero, LogicalWireState::One],
+        );
+    }
 }
