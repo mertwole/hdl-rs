@@ -96,3 +96,18 @@ const fn usize_min_4(a: usize, b: usize, c: usize, d: usize) -> usize {
 const fn usize_min(lhs: usize, rhs: usize) -> usize {
     if lhs < rhs { lhs } else { rhs }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn flip_flop_resets_to_values_can_infer_types() {
+        let _ = FlipFlopBus::resets_to_value(
+            ConstBus::new([LogicalWireState::Zero; 2]),
+            ConstBus::new([LogicalWireState::One]),
+            ConstBus::new([LogicalWireState::Zero]),
+            [LogicalWireState::Zero, LogicalWireState::One],
+        );
+    }
+}
