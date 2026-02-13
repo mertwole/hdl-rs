@@ -49,6 +49,8 @@ pub trait BusOps<const W: usize>: Bus<W> {
 
 impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 
+pub trait BusOpsMarker {}
+
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(WIDTH)]
 pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> {

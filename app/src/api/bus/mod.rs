@@ -15,7 +15,7 @@ pub use feedback::*;
 #[cfg(test)]
 pub mod mock;
 
-pub trait Bus<const W: usize>: Clone + Copy {
+pub trait Bus<const W: usize>: BusOpsMarker + Clone + Copy {
     const COMBINATIONAL_NETWORK_ID: usize;
 
     fn eval(self) -> [WireState; W];
