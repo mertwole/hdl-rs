@@ -70,11 +70,31 @@ impl VerilogModule {
     }
 
     fn generate_wire_definitions(&self) -> String {
-        format!("")
+        self.wires
+            .iter()
+            .map(|wire| match &wire.assignment {
+                Some(assignment) => {
+                    format!(
+                        "wire [{} - 1:0] {} = {};",
+                        wire.width,
+                        wire.name,
+                        assignment.to_verilog()
+                    )
+                }
+                None => {
+                    format!("wire [{} - 1:0] {};", wire.width, wire.name)
+                }
+            })
+            .intersperse(String::from("\n"))
+            .collect()
     }
 
     fn generate_reg_definitions(&self) -> String {
-        format!("")
+        self.registers
+            .iter()
+            .map(|reg| format!("reg [{} - 1:0] {};", reg.width, reg.name))
+            .intersperse(String::from("\n"))
+            .collect()
     }
 }
 
@@ -135,4 +155,20 @@ pub enum Expression {
         lhs: String,
         rhs: String,
     },
+}
+
+impl Expression {
+    fn to_verilog(&self) -> String {
+        match self {
+            Self::Const { value } => String::from("TODO"),
+            Self::And { lhs, rhs } => format!("{lhs} & {rhs}"),
+            Self::Or { lhs, rhs } => format!("{lhs} | {rhs}"),
+            Self::Xor { lhs, rhs } => format!("{lhs} ^ {rhs}"),
+            Self::Not { wire } => format!("~{wire}"),
+            Self::LeftShift { wire, amount } => String::from("TODO"),
+            Self::RightShift { wire, amount } => String::from("TODO"),
+            Self::Range { wire, from, to } => String::from("TODO"),
+            Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
+        }
+    }
 }
