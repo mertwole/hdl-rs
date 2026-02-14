@@ -36,6 +36,7 @@ impl VerilogModule {
         let module_io = self.generate_module_io();
         let wire_defs = self.generate_wire_definitions();
         let reg_defs = self.generate_reg_definitions();
+        let always_blocks = self.generate_always_blocks();
 
         format!(
             "
@@ -46,6 +47,8 @@ impl VerilogModule {
         {wire_defs}\n\
         \n\
         {reg_defs}\n\
+        \n\
+        {always_blocks}\n\
         \n\
         endmodule
         "
@@ -96,6 +99,21 @@ impl VerilogModule {
             .intersperse(String::from("\n"))
             .collect()
     }
+
+    fn generate_always_blocks(&self) -> String {
+        self.registers
+            .iter()
+            .map(|reg| {
+                format!(
+                    "always @(posedge {}) begin\n\
+                        {} <= {};\n\
+                    end",
+                    reg.clock, reg.name, reg.data_bus
+                )
+            })
+            .intersperse(String::from("\n\n"))
+            .collect()
+    }
 }
 
 pub struct InputWire {
@@ -111,6 +129,8 @@ pub struct OutputWire {
 pub struct RegisterDefinition {
     pub name: String,
     pub width: usize,
+    pub clock: String,
+    pub data_bus: String,
 }
 
 pub struct WireDefinition {
@@ -155,6 +175,10 @@ pub enum Expression {
         lhs: String,
         rhs: String,
     },
+    Fanout {
+        wire: String,
+        output_width: usize,
+    },
 }
 
 impl Expression {
@@ -175,6 +199,7 @@ impl Expression {
             Self::RightShift { wire, amount } => format!("{wire} >> {amount}"),
             Self::Range { wire, from, to } => String::from("TODO"),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
+            Self::Fanout { wire, output_width } => String::from("TODO"),
         }
     }
 }

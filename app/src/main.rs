@@ -38,9 +38,11 @@ fn module_example<A: InputBus<8>, B: InputBus<8>>(
     let a_middle = a.wire_at::<3>();
     let a_right = a.sub_bus::<4, 8>();
 
+    let ff = FlipFlopBus::resets_to_value(a_left, a_middle, a_middle, [LogicalWireState::One; 3]);
+
     let a_middle_inv = !a_middle;
 
-    concat!(a_left, a_middle_inv, a_right, b)
+    concat!(ff, a_middle_inv, a_right, b)
 }
 
 #[derive(Clone, Copy)]

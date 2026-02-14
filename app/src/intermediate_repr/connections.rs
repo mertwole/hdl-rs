@@ -46,13 +46,21 @@ impl IntermediateRepr for BusConcat {
 }
 
 pub struct FanoutBus {
+    pub output_width: usize,
     pub input: BusId,
     pub output: BusId,
 }
 
 impl IntermediateRepr for FanoutBus {
     fn to_verilog(&self, module: &mut verilog::VerilogModule) {
-        todo!()
+        module.add_wire(verilog::WireDefinition {
+            name: self.output.to_string(),
+            width: self.output_width,
+            assignment: Some(verilog::Expression::Fanout {
+                wire: self.input.to_string(),
+                output_width: self.output_width,
+            }),
+        });
     }
 }
 

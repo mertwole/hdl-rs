@@ -80,6 +80,7 @@ impl<const W: usize, D: Bus<W>, C: Bus<1>, R: Bus<W>, S: Bus<W>> Bus<W>
     ) {
         builder.push_element(
             intermediate_repr::flip_flop::FlipFlop {
+                width: W,
                 data: self.data.get_id(),
                 reset: self.reset.get_id(),
                 set: self.set.get_id(),

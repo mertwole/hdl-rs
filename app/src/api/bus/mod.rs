@@ -57,6 +57,7 @@ impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::connections::FanoutBus {
+                output_width: W,
                 input: self.wire.get_id(),
                 output: self.id,
             },
