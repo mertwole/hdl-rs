@@ -1,22 +1,36 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
+    fmt::{Display, Formatter},
+    hash::Hash,
     sync::{Arc, Mutex, OnceLock},
 };
 
-use crate::api::prelude::LogicalWireState;
+use crate::{
+    api::prelude::LogicalWireState,
+    verilog::{self, VerilogModule},
+};
 
 pub mod connections;
 pub mod flip_flop;
 pub mod gates;
 
-pub trait IntermediateRepr {}
+pub trait IntermediateRepr {
+    fn to_verilog(&self, module: &mut VerilogModule);
+}
 
 pub struct InputBus {
     pub width: usize,
     pub id: BusId,
 }
 
-impl IntermediateRepr for InputBus {}
+impl IntermediateRepr for InputBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        module.add_input(verilog::InputWire {
+            name: self.id.to_string(),
+            width: self.width,
+        });
+    }
+}
 
 pub struct ConstBus {
     pub width: usize,
@@ -24,7 +38,19 @@ pub struct ConstBus {
     pub value: Vec<LogicalWireState>,
 }
 
-impl IntermediateRepr for ConstBus {}
+impl IntermediateRepr for ConstBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        let value: Vec<_> = self.value.iter().copied().map(From::from).collect();
+
+        let wire = verilog::WireDefinition {
+            name: self.id.to_string(),
+            width: self.width,
+            assignment: Some(verilog::Expression::Const { value }),
+        };
+
+        module.add_wire(wire);
+    }
+}
 
 static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
 
@@ -65,6 +91,13 @@ impl BusId {
     }
 }
 
+// TODO: Remove it. These names shouldn't appear on schematic and in verilog code.
+impl Display for BusId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "bus_{}", self.id)
+    }
+}
+
 pub struct Module {
     inputs: Vec<BusId>,
     outputs: Vec<BusId>,
@@ -74,10 +107,28 @@ pub struct IntermediateReprBuilder {
     nodes: HashMap<BusId, Box<dyn IntermediateRepr>>,
 }
 
+// TODO: Add method `finalize` which will return `IntermediateRepr`.
 impl IntermediateReprBuilder {
+    pub fn new() -> Self {
+        Self {
+            nodes: HashMap::new(),
+        }
+    }
+
     pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
         if let Entry::Vacant(entry) = self.nodes.entry(id) {
             entry.insert(Box::from(element));
         }
+    }
+
+    // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
+    pub fn to_verilog(&self) -> VerilogModule {
+        let mut module = VerilogModule::new();
+
+        for node in self.nodes.values() {
+            node.to_verilog(&mut module);
+        }
+
+        module
     }
 }
