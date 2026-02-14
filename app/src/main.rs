@@ -10,6 +10,7 @@ use api::prelude::*;
 use crate::intermediate_repr::BusId;
 
 mod intermediate_repr;
+mod verilog;
 
 fn main() {}
 
