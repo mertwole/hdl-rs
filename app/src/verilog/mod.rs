@@ -160,7 +160,13 @@ pub enum Expression {
 impl Expression {
     fn to_verilog(&self) -> String {
         match self {
-            Self::Const { value } => String::from("TODO"),
+            Self::Const { value } => {
+                let value: String = value
+                    .iter()
+                    .map(|&val| (val as usize).to_string())
+                    .collect();
+                format!("'b{value}")
+            }
             Self::And { lhs, rhs } => format!("{lhs} & {rhs}"),
             Self::Or { lhs, rhs } => format!("{lhs} | {rhs}"),
             Self::Xor { lhs, rhs } => format!("{lhs} ^ {rhs}"),
