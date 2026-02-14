@@ -165,8 +165,8 @@ impl Expression {
             Self::Or { lhs, rhs } => format!("{lhs} | {rhs}"),
             Self::Xor { lhs, rhs } => format!("{lhs} ^ {rhs}"),
             Self::Not { wire } => format!("~{wire}"),
-            Self::LeftShift { wire, amount } => String::from("TODO"),
-            Self::RightShift { wire, amount } => String::from("TODO"),
+            Self::LeftShift { wire, amount } => format!("{wire} << {amount}"),
+            Self::RightShift { wire, amount } => format!("{wire} >> {amount}"),
             Self::Range { wire, from, to } => String::from("TODO"),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
         }
