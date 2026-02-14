@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
+    hash::Hash,
     sync::{Arc, Mutex, OnceLock},
 };
 
@@ -105,10 +106,28 @@ pub struct IntermediateReprBuilder {
     nodes: HashMap<BusId, Box<dyn IntermediateRepr>>,
 }
 
+// TODO: Add method `finalize` which will return `IntermediateRepr`.
 impl IntermediateReprBuilder {
+    pub fn new() -> Self {
+        Self {
+            nodes: HashMap::new(),
+        }
+    }
+
     pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
         if let Entry::Vacant(entry) = self.nodes.entry(id) {
             entry.insert(Box::from(element));
         }
+    }
+
+    // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
+    pub fn to_verilog(&self) -> VerilogModule {
+        let mut module = VerilogModule::new();
+
+        for (_, node) in &self.nodes {
+            node.to_verilog(&mut module);
+        }
+
+        module
     }
 }

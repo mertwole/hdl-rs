@@ -31,6 +31,51 @@ impl VerilogModule {
     pub fn add_register(&mut self, register: RegisterDefinition) {
         self.registers.push(register);
     }
+
+    pub fn generate_verilog(&self) -> String {
+        let module_io = self.generate_module_io();
+        let wire_defs = self.generate_wire_definitions();
+        let reg_defs = self.generate_reg_definitions();
+
+        format!(
+            "
+        modulue test(\n\
+        {module_io}\n\
+        );
+        \n\
+        {wire_defs}\n\
+        \n\
+        {reg_defs}\n\
+        \n\
+        endmodule
+        "
+        )
+    }
+
+    fn generate_module_io(&self) -> String {
+        let inputs = self
+            .inputs
+            .iter()
+            .map(|input| format!("input [{} - 1:0] {}", input.width, input.name));
+
+        let outputs = self
+            .outputs
+            .iter()
+            .map(|output| format!("output wire [{} - 1:0] {}", output.width, output.name));
+
+        inputs
+            .chain(outputs)
+            .intersperse(String::from(",\n"))
+            .collect()
+    }
+
+    fn generate_wire_definitions(&self) -> String {
+        format!("")
+    }
+
+    fn generate_reg_definitions(&self) -> String {
+        format!("")
+    }
 }
 
 pub struct InputWire {

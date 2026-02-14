@@ -1,5 +1,6 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(iter_intersperse)]
 #![allow(dead_code)]
 
 use autoimpl_operators::derive_bus_bitwise_ops;
@@ -12,7 +13,75 @@ use crate::intermediate_repr::BusId;
 mod intermediate_repr;
 mod verilog;
 
-fn main() {}
+fn main() {
+    let a = InputBusImpl::new([WireState::Zero; 8]);
+    let b = InputBusImpl::new([WireState::One; 8]);
+
+    let out = module_example(InputBusWrapper::new(a), InputBusWrapper::new(b));
+
+    let mut builder = intermediate_repr::IntermediateReprBuilder::new();
+    out.build_intermediate_repr(&mut builder);
+    let verilog_mod = builder.to_verilog();
+
+    let verilog = verilog_mod.generate_verilog();
+
+    println!("{verilog}");
+}
+
+fn module_example<A: InputBus<8>, B: InputBus<8>>(
+    a: InputBusWrapper<8, A>,
+    b: InputBusWrapper<8, B>,
+) -> impl Bus<16> {
+    let c = a & b | a ^ !b;
+
+    let a_left = c.sub_bus::<0, 3>();
+    let a_middle = a.wire_at::<3>();
+    let a_right = a.sub_bus::<4, 8>();
+
+    let a_middle_inv = !a_middle;
+
+    concat!(a_left, a_middle_inv, a_right, b)
+}
+
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+struct InputBusImpl<const W: usize> {
+    value: [WireState; W],
+    id: BusId,
+}
+
+impl<const W: usize> InputBusImpl<W> {
+    fn new(value: [WireState; W]) -> Self {
+        Self {
+            value,
+            id: BusId::new(),
+        }
+    }
+}
+
+impl<const W: usize> InputBus<W> for InputBusImpl<W> {}
+
+impl<const W: usize> Bus<W> for InputBusImpl<W> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
+    fn eval(self) -> [WireState; W] {
+        self.value
+    }
+
+    fn get_id(self) -> BusId {
+        self.id
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        builder.push_element(
+            intermediate_repr::InputBus {
+                width: W,
+                id: self.id,
+            },
+            self.id,
+        );
+    }
+}
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
@@ -49,7 +118,10 @@ impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
 #[cfg(test)]
 mod tests {
     use super::InputBusWrapper;
-    use crate::api::{bus::mock::*, prelude::*};
+    use crate::{
+        api::{bus::mock::*, prelude::*},
+        intermediate_repr,
+    };
 
     #[test]
     fn test_finite_module_instantiation() {
