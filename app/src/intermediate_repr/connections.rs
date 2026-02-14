@@ -15,6 +15,7 @@ impl IntermediateRepr for SubBus {
         module.add_wire(verilog::WireDefinition {
             name: self.output.to_string(),
             width: self.to - self.from,
+            // TODO: Properly convert range to the verilog indexes.
             assignment: Some(verilog::Expression::Range {
                 wire: self.input.to_string(),
                 from: self.from,
