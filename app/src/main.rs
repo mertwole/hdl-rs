@@ -120,10 +120,7 @@ impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
 #[cfg(test)]
 mod tests {
     use super::InputBusWrapper;
-    use crate::{
-        api::{bus::mock::*, prelude::*},
-        intermediate_repr,
-    };
+    use crate::api::{bus::mock::*, prelude::*};
 
     #[test]
     fn test_finite_module_instantiation() {

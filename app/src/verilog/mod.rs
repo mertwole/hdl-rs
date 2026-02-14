@@ -197,9 +197,9 @@ impl Expression {
             Self::Not { wire } => format!("~{wire}"),
             Self::LeftShift { wire, amount } => format!("{wire} << {amount}"),
             Self::RightShift { wire, amount } => format!("{wire} >> {amount}"),
-            Self::Range { wire, from, to } => String::from("TODO"),
+            Self::Range { .. } => String::from("TODO"),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
-            Self::Fanout { wire, output_width } => String::from("TODO"),
+            Self::Fanout { .. } => String::from("TODO"),
         }
     }
 }

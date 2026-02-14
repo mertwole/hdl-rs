@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
+    fmt::{Display, Formatter},
     hash::Hash,
     sync::{Arc, Mutex, OnceLock},
 };
@@ -91,9 +92,9 @@ impl BusId {
 }
 
 // TODO: Remove it. These names shouldn't appear on schematic and in verilog code.
-impl ToString for BusId {
-    fn to_string(&self) -> String {
-        format!("bus_{}", self.id)
+impl Display for BusId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "bus_{}", self.id)
     }
 }
 
@@ -124,7 +125,7 @@ impl IntermediateReprBuilder {
     pub fn to_verilog(&self) -> VerilogModule {
         let mut module = VerilogModule::new();
 
-        for (_, node) in &self.nodes {
+        for node in self.nodes.values() {
             node.to_verilog(&mut module);
         }
 
