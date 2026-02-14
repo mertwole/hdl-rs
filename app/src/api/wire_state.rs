@@ -23,6 +23,15 @@ impl From<LogicalWireState> for WireState {
     }
 }
 
+impl From<LogicalWireState> for bool {
+    fn from(value: LogicalWireState) -> Self {
+        match value {
+            LogicalWireState::Zero => false,
+            LogicalWireState::One => true,
+        }
+    }
+}
+
 impl Not for LogicalWireState {
     type Output = Self;
 

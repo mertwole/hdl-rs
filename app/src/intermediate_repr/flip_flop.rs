@@ -11,4 +11,8 @@ pub struct FlipFlop {
     pub output: BusId,
 }
 
-impl IntermediateRepr for FlipFlop {}
+impl IntermediateRepr for FlipFlop {
+    fn to_verilog(&self, module: &mut crate::verilog::VerilogModule) {
+        todo!()
+    }
+}

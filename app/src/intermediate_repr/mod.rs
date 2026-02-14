@@ -3,20 +3,32 @@ use std::{
     sync::{Arc, Mutex, OnceLock},
 };
 
-use crate::api::prelude::LogicalWireState;
+use crate::{
+    api::prelude::LogicalWireState,
+    verilog::{self, VerilogModule},
+};
 
 pub mod connections;
 pub mod flip_flop;
 pub mod gates;
 
-pub trait IntermediateRepr {}
+pub trait IntermediateRepr {
+    fn to_verilog(&self, module: &mut VerilogModule);
+}
 
 pub struct InputBus {
     pub width: usize,
     pub id: BusId,
 }
 
-impl IntermediateRepr for InputBus {}
+impl IntermediateRepr for InputBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        module.add_input(verilog::InputWire {
+            name: self.id.to_string(),
+            width: self.width,
+        });
+    }
+}
 
 pub struct ConstBus {
     pub width: usize,
@@ -24,7 +36,19 @@ pub struct ConstBus {
     pub value: Vec<LogicalWireState>,
 }
 
-impl IntermediateRepr for ConstBus {}
+impl IntermediateRepr for ConstBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        let value: Vec<_> = self.value.iter().copied().map(From::from).collect();
+
+        let wire = verilog::WireDefinition {
+            name: self.id.to_string(),
+            width: self.width,
+            assignment: Some(verilog::Expression::Const { value }),
+        };
+
+        module.add_wire(wire);
+    }
+}
 
 static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
 
@@ -62,6 +86,13 @@ impl BusId {
     #[cfg(test)]
     pub fn mock() -> Self {
         Self { id: 0 }
+    }
+}
+
+// TODO: Remove it. These names shouldn't appear on schematic and in verilog code.
+impl ToString for BusId {
+    fn to_string(&self) -> String {
+        format!("bus_{}", self.id)
     }
 }
 

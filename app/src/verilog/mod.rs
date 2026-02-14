@@ -55,6 +55,9 @@ pub struct WireDefinition {
 }
 
 pub enum Expression {
+    Const {
+        value: Vec<bool>,
+    },
     And {
         lhs: String,
         rhs: String,
