@@ -6,6 +6,7 @@ use crate::{
 };
 
 // TODO: Decide what bounds should be applied when implementing ClockBus and ResetBus for FlipFlopBus.
+// TODO: Implement `#[diagnostic::on_unimplemented]` to clarify the `ClockBus` and `ResetBus` bounds behaviour.
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 pub struct FlipFlopBus<
