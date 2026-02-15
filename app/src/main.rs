@@ -28,7 +28,7 @@ fn main() {
     println!("{verilog}");
 }
 
-fn module_example<A: InputBus<8> + ClockBus, B: InputBus<8>>(
+fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
     a: InputBusWrapper<8, A>,
     b: InputBusWrapper<8, B>,
 ) -> impl Bus<16> {

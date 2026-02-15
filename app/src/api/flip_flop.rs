@@ -5,10 +5,16 @@ use crate::{
     intermediate_repr::{self, BusId},
 };
 
-// TODO: Decide what bounds should be applied when implementing ClockBus for FlipFlopBus.
+// TODO: Decide what bounds should be applied when implementing ClockBus and ResetBus for FlipFlopBus.
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W>, S: Bus<W>> {
+pub struct FlipFlopBus<
+    const W: usize,
+    D: Bus<W>,
+    C: Bus<1> + ClockBus,
+    R: Bus<W> + ResetBus,
+    S: Bus<W> + ResetBus,
+> {
     current_state: [WireState; W],
 
     data: D,
@@ -19,7 +25,7 @@ pub struct FlipFlopBus<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W
     id: BusId,
 }
 
-impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W>, S: Bus<W>>
+impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: Bus<W> + ResetBus>
     FlipFlopBus<W, D, C, R, S>
 {
     pub fn new(data: D, clock: C, reset: R, set: S) -> Self {
@@ -38,7 +44,7 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W>, S: Bus<W>>
 type ResetsToValueResetBusType<const W: usize, R> = BusAnd<W, FanoutBus<W, R>, ConstBus<W>>;
 type ResetsToValueSetBusType<const W: usize, R> = BusAnd<W, FanoutBus<W, R>, ConstBus<W>>;
 
-impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<1>>
+impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<1> + ResetBus>
     FlipFlopBus<W, D, C, ResetsToValueResetBusType<W, R>, ResetsToValueSetBusType<W, R>>
 {
     pub fn resets_to_value(
@@ -59,8 +65,8 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<1>>
     }
 }
 
-impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W>, S: Bus<W>> Bus<W>
-    for FlipFlopBus<W, D, C, R, S>
+impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: Bus<W> + ResetBus>
+    Bus<W> for FlipFlopBus<W, D, C, R, S>
 {
     const COMBINATIONAL_NETWORK_ID: usize = 1 + usize_min_4(
         D::COMBINATIONAL_NETWORK_ID,
