@@ -7,6 +7,7 @@ extern crate syn;
 
 use syn::{Expr, ItemStruct, Token, Type, parse_macro_input, punctuated::Punctuated};
 
+mod bus;
 mod bus_bitwise_ops;
 mod clock_bus;
 mod reset_bus;
@@ -66,5 +67,20 @@ pub fn derive_reset_bus(
     let trait_impl = type_info.generate_trait_impl();
 
     item.extend(proc_macro::TokenStream::from(trait_impl));
+    item
+}
+
+#[proc_macro_attribute]
+pub fn bus(
+    _attr: proc_macro::TokenStream,
+    mut item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let input = item.clone();
+    let item_struct = parse_macro_input!(input as ItemStruct);
+
+    // TODO: Process errors.
+    let impls = bus::TypeInfo::parse(item_struct).unwrap().generate_impls();
+    item.extend(proc_macro::TokenStream::from(impls));
+
     item
 }
