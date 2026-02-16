@@ -69,11 +69,12 @@ impl IdRegistry {
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BusId {
     id: usize,
+    width: usize,
 }
 
 impl BusId {
     // TODO: Rename to `new_unique`;
-    pub fn new() -> Self {
+    pub fn new(width: usize) -> Self {
         let mut id = ID_REGISTRY
             .get_or_init(IdRegistry::new)
             .last_id
@@ -82,12 +83,12 @@ impl BusId {
         let new_id = *id;
         *id += 1;
 
-        Self { id: new_id }
+        Self { id: new_id, width }
     }
 
     #[cfg(test)]
     pub fn mock() -> Self {
-        Self { id: 0 }
+        Self { id: 0, width: 0 }
     }
 }
 
