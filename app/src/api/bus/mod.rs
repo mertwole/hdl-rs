@@ -44,7 +44,7 @@ impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {
     pub fn new(wire: B) -> Self {
         Self {
             wire,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -87,7 +87,7 @@ impl<const W: usize> ConstBus<W> {
     pub fn new(values: [LogicalWireState; W]) -> Self {
         Self {
             values,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }

@@ -37,7 +37,7 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: B
             reset,
             set,
 
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
