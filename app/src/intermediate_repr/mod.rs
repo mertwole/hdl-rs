@@ -73,8 +73,7 @@ pub struct BusId {
 }
 
 impl BusId {
-    // TODO: Rename to `new_unique`;
-    pub fn new(width: usize) -> Self {
+    pub fn new_unique(width: usize) -> Self {
         let mut id = ID_REGISTRY
             .get_or_init(IdRegistry::new)
             .last_id

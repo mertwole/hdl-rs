@@ -64,7 +64,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> SubBus<W,
     pub fn new(bus: B) -> Self {
         Self {
             bus,
-            id: BusId::new(WIDTH),
+            id: BusId::new_unique(WIDTH),
         }
     }
 }
@@ -114,7 +114,7 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> BusConcat<W1, B
         Self {
             lhs,
             rhs,
-            id: BusId::new(W1 + W2),
+            id: BusId::new_unique(W1 + W2),
         }
     }
 }
@@ -168,7 +168,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusAnd<W, BL, BR> {
         Self {
             lhs,
             rhs,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -220,7 +220,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusOr<W, BL, BR> {
         Self {
             lhs,
             rhs,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -272,7 +272,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusXor<W, BL, BR> {
         Self {
             lhs,
             rhs,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -322,7 +322,7 @@ impl<const W: usize, B: Bus<W>> BusNot<W, B> {
     pub fn new(bus: B) -> Self {
         Self {
             bus,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -365,7 +365,7 @@ impl<const W: usize, B: Bus<W>, const S: usize> BusShiftRight<W, B, S> {
     pub fn new(bus: B) -> Self {
         Self {
             bus,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -417,7 +417,7 @@ impl<const W: usize, B: Bus<W>, const S: usize> BusShiftLeft<W, B, S> {
     pub fn new(bus: B) -> Self {
         Self {
             bus,
-            id: BusId::new(W),
+            id: BusId::new_unique(W),
         }
     }
 }
