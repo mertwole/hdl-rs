@@ -6,10 +6,7 @@ use syn::{
 };
 
 // TODO
-// accept output widht as an argument to macro
-//
 // implement constructor creating id automatically
-// implement operators
 // implement get_id (split Bus trait for that)
 // implement build_intermediate_repr (split Bus trait for that)
 pub struct TypeInfo {
@@ -24,7 +21,7 @@ pub struct TypeInfo {
 }
 
 struct Input {
-    ident: Ident,
+    _ident: Ident,
     ty: Type,
 }
 
@@ -45,7 +42,7 @@ impl TypeInfo {
                 field.attrs.remove(id);
                 inputs.push(Input {
                     // TODO: Process error.
-                    ident: field.ident.clone().unwrap(),
+                    _ident: field.ident.clone().unwrap(),
                     ty: field.ty.clone(),
                 });
             }
