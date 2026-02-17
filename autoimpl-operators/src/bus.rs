@@ -2,24 +2,23 @@ use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    Attribute, Fields, FieldsNamed, Generics, Ident, ItemStruct, Type, parse_quote, token::Token,
+    Attribute, Fields, FieldsNamed, Generics, Ident, ItemStruct, Type, Visibility, parse_quote,
+    token::Token,
 };
 
 // TODO
-// mark inputs with #[input]
 // accept output widht as an argument to macro
 //
-// derive clone, copy
-// add id field
 // implement constructor creating id automatically
-// derive ClockBus and ResetBus
 // implement operators
 // implement get_id (split Bus trait for that)
 // implement build_intermediate_repr (split Bus trait for that)
 pub struct TypeInfo {
+    attrs: Vec<Attribute>,
+    vis: Visibility,
     ident: Ident,
-    fields: FieldsNamed,
     generics: Generics,
+    fields: FieldsNamed,
 
     inputs: Vec<Input>,
 }
@@ -53,20 +52,54 @@ impl TypeInfo {
         });
 
         Ok(Self {
+            attrs: item.attrs,
+            vis: item.vis,
             ident: item.ident,
-            fields,
             generics: item.generics,
+            fields,
 
-            inputs: vec![],
+            inputs,
         })
     }
 
     pub fn generate_impls(self) -> TokenStream {
+        let struct_vis = self.vis;
+        let struct_attrs = self.attrs;
+        let struct_ident = self.ident;
+        let struct_generics = self.generics.clone();
+
+        let struct_fields = Fields::Named(self.fields);
+        let struct_fields = struct_fields.iter();
+
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-        let name = self.ident;
+
+        let mut clock_bus_where_clause =
+            where_clause.cloned().unwrap_or_else(|| parse_quote!(where));
+        self.inputs.iter().for_each(|input| {
+            let ty = &input.ty;
+            let bound = parse_quote!( #ty : crate::api::bus::ClockBus );
+            clock_bus_where_clause.predicates.push(bound);
+        });
+
+        let mut reset_bus_where_clause =
+            where_clause.cloned().unwrap_or_else(|| parse_quote!(where));
+        self.inputs.iter().for_each(|input| {
+            let ty = &input.ty;
+            let bound = parse_quote!( #ty : crate::api::bus::ResetBus );
+            reset_bus_where_clause.predicates.push(bound);
+        });
 
         quote! {
-            impl #impl_generics crate::api::bus::ResetBus for #name #ty_generics #where_clause { }
+            #(#struct_attrs)*
+            #[derive(Copy, Clone)]
+            #struct_vis struct #struct_ident #struct_generics {
+                #(#struct_fields),*,
+                id: crate::intermediate_repr::BusId
+            }
+
+            impl #impl_generics crate::api::bus::ResetBus for #struct_ident #ty_generics #reset_bus_where_clause { }
+
+            impl #impl_generics crate::api::bus::ClockBus for #struct_ident #ty_generics #clock_bus_where_clause { }
         }
     }
 }

@@ -3,7 +3,7 @@ use crate::{
     intermediate_repr::{self, BusId, IntermediateReprBuilder},
 };
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{bus, derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
 
 mod operations;
 pub use operations::*;
@@ -74,13 +74,10 @@ impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
     }
 }
 
-#[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus]
-#[derive_reset_bus]
+#[bus]
 pub struct ConstBus<const W: usize> {
     values: [LogicalWireState; W],
-    id: BusId,
 }
 
 impl<const W: usize> ConstBus<W> {

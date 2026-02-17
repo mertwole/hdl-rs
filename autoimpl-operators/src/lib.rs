@@ -73,14 +73,11 @@ pub fn derive_reset_bus(
 #[proc_macro_attribute]
 pub fn bus(
     _attr: proc_macro::TokenStream,
-    mut item: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let input = item.clone();
-    let item_struct = parse_macro_input!(input as ItemStruct);
+    let item_struct = parse_macro_input!(item as ItemStruct);
 
     // TODO: Process errors.
     let impls = bus::TypeInfo::parse(item_struct).unwrap().generate_impls();
-    item.extend(proc_macro::TokenStream::from(impls));
-
-    item
+    proc_macro::TokenStream::from(impls)
 }
