@@ -5,7 +5,7 @@ extern crate syn;
 
 // TODO: Add tests.
 
-use syn::{Expr, ItemStruct, Token, Type, parse_macro_input, punctuated::Punctuated};
+use syn::{Expr, ItemStruct, parse_macro_input};
 
 mod bus;
 mod bus_bitwise_ops;

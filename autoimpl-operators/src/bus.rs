@@ -1,9 +1,7 @@
 use itertools::Itertools;
 use proc_macro2::TokenStream;
-use quote::ToTokens;
 use syn::{
     Attribute, Fields, FieldsNamed, Generics, Ident, ItemStruct, Type, Visibility, parse_quote,
-    token::Token,
 };
 
 // TODO
