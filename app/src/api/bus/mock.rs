@@ -1,4 +1,4 @@
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::derive_bus_bitwise_ops;
 
 use crate::{
     api::{
@@ -10,8 +10,6 @@ use crate::{
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus]
-#[derive_reset_bus]
 pub struct MockBus<const W: usize>([WireState; W]);
 
 impl<const W: usize> MockBus<W> {
@@ -38,8 +36,6 @@ impl<const W: usize> Bus<W> for MockBus<W> {
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus]
-#[derive_reset_bus]
 pub struct MockInputBus<const W: usize> {
     values: [WireState; W],
 }

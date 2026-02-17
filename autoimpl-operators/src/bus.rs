@@ -40,7 +40,7 @@ impl TypeInfo {
             let input_attr_id = field
                 .attrs
                 .iter()
-                .find_position(|attr| attr.meta.path().is_ident(""));
+                .find_position(|attr| attr.meta.path().is_ident("input"));
             if let Some((id, _)) = input_attr_id {
                 field.attrs.remove(id);
                 inputs.push(Input {

@@ -3,7 +3,7 @@ use crate::{
     intermediate_repr::{self, BusId, IntermediateReprBuilder},
 };
 
-use autoimpl_operators::{bus, derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{bus, derive_bus_bitwise_ops};
 
 mod operations;
 pub use operations::*;
@@ -31,13 +31,11 @@ pub trait ClockBus {}
 
 pub trait ResetBus {}
 
-#[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
+#[bus]
 pub struct FanoutBus<const W: usize, B: Bus<1>> {
+    #[input]
     wire: B,
-    id: BusId,
 }
 
 impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {

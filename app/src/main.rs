@@ -3,7 +3,7 @@
 #![feature(iter_intersperse)]
 #![allow(dead_code)]
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{bus, derive_bus_bitwise_ops};
 
 mod api;
 use api::prelude::*;
@@ -45,13 +45,10 @@ fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
     concat!(ff, a_middle_inv, a_right, b)
 }
 
-#[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus]
-#[derive_reset_bus]
+#[bus]
 struct InputBusImpl<const W: usize> {
     value: [WireState; W],
-    id: BusId,
 }
 
 impl<const W: usize> InputBusImpl<W> {
@@ -87,13 +84,11 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
     }
 }
 
-#[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
-#[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
+#[bus]
 struct InputBusWrapper<const W: usize, B: Bus<W>> {
+    #[input]
     bus: B,
-    id: BusId,
 }
 
 impl<const W: usize, B: Bus<W>> InputBusWrapper<W, B> {
