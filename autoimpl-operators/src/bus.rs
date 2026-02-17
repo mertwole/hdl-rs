@@ -1,7 +1,8 @@
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use syn::{
-    Attribute, Fields, FieldsNamed, Generics, Ident, ItemStruct, Type, Visibility, parse_quote,
+    Attribute, Expr, Fields, FieldsNamed, Generics, Ident, ItemStruct, Type, Visibility,
+    parse_quote,
 };
 
 // TODO
@@ -18,6 +19,7 @@ pub struct TypeInfo {
     generics: Generics,
     fields: FieldsNamed,
 
+    width_expr: Expr,
     inputs: Vec<Input>,
 }
 
@@ -28,7 +30,7 @@ struct Input {
 
 impl TypeInfo {
     // TODO: Error processing.
-    pub fn parse(item: ItemStruct) -> Result<Self, ()> {
+    pub fn parse(item: ItemStruct, width_expr: Expr) -> Result<Self, ()> {
         let Fields::Named(mut fields) = item.fields else {
             return Err(());
         };
@@ -56,6 +58,7 @@ impl TypeInfo {
             generics: item.generics,
             fields,
 
+            width_expr,
             inputs,
         })
     }
@@ -87,9 +90,12 @@ impl TypeInfo {
             reset_bus_where_clause.predicates.push(bound);
         });
 
+        let width_expr = self.width_expr;
+
         quote! {
             #(#struct_attrs)*
             #[derive(Copy, Clone)]
+            #[autoimpl_operators::derive_bus_bitwise_ops(#width_expr)]
             #struct_vis struct #struct_ident #struct_generics {
                 #(#struct_fields),*,
                 id: crate::intermediate_repr::BusId

@@ -30,12 +30,15 @@ pub fn derive_bus_bitwise_ops(
 
 #[proc_macro_attribute]
 pub fn bus(
-    _attr: proc_macro::TokenStream,
+    attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let item_struct = parse_macro_input!(item as ItemStruct);
+    let width_expr = parse_macro_input!(attr as Expr);
 
     // TODO: Process errors.
-    let impls = bus::TypeInfo::parse(item_struct).unwrap().generate_impls();
+    let impls = bus::TypeInfo::parse(item_struct, width_expr)
+        .unwrap()
+        .generate_impls();
     proc_macro::TokenStream::from(impls)
 }

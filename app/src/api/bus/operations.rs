@@ -1,4 +1,4 @@
-use autoimpl_operators::{bus, derive_bus_bitwise_ops};
+use autoimpl_operators::bus;
 
 use crate::{
     api::prelude::*,
@@ -51,8 +51,7 @@ impl<T, const W: usize> BusOps<W> for T where T: Bus<W> {}
 
 pub trait BusOpsMarker {}
 
-#[derive_bus_bitwise_ops(WIDTH)]
-#[bus]
+#[bus(WIDTH)]
 pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> {
     #[input]
     bus: B,
@@ -97,8 +96,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
     }
 }
 
-#[derive_bus_bitwise_ops(W1 + W2)]
-#[bus]
+#[bus(W1 + W2)]
 pub struct BusConcat<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> {
     #[input]
     lhs: B1,
@@ -149,8 +147,7 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     #[input]
     lhs: BL,
@@ -200,8 +197,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     #[input]
     lhs: BL,
@@ -251,8 +247,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     #[input]
     lhs: BL,
@@ -302,8 +297,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusNot<const W: usize, B: Bus<W>> {
     #[input]
     bus: B,
@@ -343,8 +337,7 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
     #[input]
     bus: B,
@@ -393,8 +386,7 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
     #[input]
     bus: B,

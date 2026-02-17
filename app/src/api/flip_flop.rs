@@ -1,4 +1,4 @@
-use autoimpl_operators::derive_bus_bitwise_ops;
+use autoimpl_operators::bus;
 
 use crate::{
     api::prelude::*,
@@ -7,8 +7,8 @@ use crate::{
 
 // TODO: Decide what bounds should be applied when implementing ClockBus and ResetBus for FlipFlopBus.
 // TODO: Implement `#[diagnostic::on_unimplemented]` to clarify the `ClockBus` and `ResetBus` bounds behaviour.
-#[derive(Clone, Copy)]
-#[derive_bus_bitwise_ops(W)]
+// TODO: Skip ClockBus and ResetBus impl.
+#[bus(W)]
 pub struct FlipFlopBus<
     const W: usize,
     D: Bus<W>,
@@ -22,8 +22,6 @@ pub struct FlipFlopBus<
     clock: C,
     reset: R,
     set: S,
-
-    id: BusId,
 }
 
 impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: Bus<W> + ResetBus>

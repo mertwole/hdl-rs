@@ -3,7 +3,7 @@
 #![feature(iter_intersperse)]
 #![allow(dead_code)]
 
-use autoimpl_operators::{bus, derive_bus_bitwise_ops};
+use autoimpl_operators::bus;
 
 mod api;
 use api::prelude::*;
@@ -45,8 +45,7 @@ fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
     concat!(ff, a_middle_inv, a_right, b)
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 struct InputBusImpl<const W: usize> {
     value: [WireState; W],
 }
@@ -84,8 +83,7 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
     }
 }
 
-#[derive_bus_bitwise_ops(W)]
-#[bus]
+#[bus(W)]
 struct InputBusWrapper<const W: usize, B: Bus<W>> {
     #[input]
     bus: B,
