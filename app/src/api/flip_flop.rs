@@ -78,10 +78,6 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: B
         self.current_state
     }
 
-    fn get_id(self) -> BusId {
-        self.id
-    }
-
     fn build_intermediate_repr(
         self,
         builder: &mut crate::intermediate_repr::IntermediateReprBuilder,

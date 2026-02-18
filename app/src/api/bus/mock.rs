@@ -2,7 +2,7 @@ use autoimpl_operators::derive_bus_bitwise_ops;
 
 use crate::{
     api::{
-        bus::InputBus,
+        bus::{HasBusId, InputBus},
         prelude::{Bus, WireState},
     },
     intermediate_repr::{BusId, IntermediateReprBuilder},
@@ -25,12 +25,14 @@ impl<const W: usize> Bus<W> for MockBus<W> {
         self.0
     }
 
-    fn get_id(self) -> BusId {
-        BusId::mock()
-    }
-
     fn build_intermediate_repr(self, _builder: &mut IntermediateReprBuilder) {
         unimplemented!()
+    }
+}
+
+impl<const W: usize> HasBusId for MockBus<W> {
+    fn get_id(self) -> BusId {
+        BusId::mock()
     }
 }
 
@@ -53,12 +55,14 @@ impl<const W: usize> Bus<W> for MockInputBus<W> {
         self.values
     }
 
-    fn get_id(self) -> BusId {
-        BusId::mock()
-    }
-
     fn build_intermediate_repr(self, _builder: &mut IntermediateReprBuilder) {
         unimplemented!()
+    }
+}
+
+impl<const W: usize> HasBusId for MockInputBus<W> {
+    fn get_id(self) -> BusId {
+        BusId::mock()
     }
 }
 

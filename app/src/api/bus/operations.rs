@@ -77,10 +77,6 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
             .expect("Checked to match the width")
     }
 
-    fn get_id(self) -> BusId {
-        self.id
-    }
-
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::connections::SubBus {
@@ -125,10 +121,6 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
             .concat()
             .try_into()
             .expect("Checked to match the width")
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
@@ -177,10 +169,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
         result.try_into().expect("Checked to match the length")
     }
 
-    fn get_id(self) -> BusId {
-        self.id
-    }
-
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::And {
@@ -225,10 +213,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
 
         let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
         result.try_into().expect("Checked to match the length")
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
@@ -277,10 +261,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
         result.try_into().expect("Checked to match the length")
     }
 
-    fn get_id(self) -> BusId {
-        self.id
-    }
-
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::Xor {
@@ -317,10 +297,6 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
 
     fn eval(self) -> [WireState; W] {
         self.bus.eval().map(|value| value.not())
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
@@ -362,10 +338,6 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S
             .map(|i| if S > i { WireState::Zero } else { value[i - S] })
             .collect();
         result.try_into().expect("Checked to match the length")
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(
@@ -417,10 +389,6 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S>
             })
             .collect();
         result.try_into().expect("Checked to match the length")
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(

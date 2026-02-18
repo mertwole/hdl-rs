@@ -3,7 +3,10 @@ use std::{cell::RefCell, rc::Rc, sync::OnceLock};
 use autoimpl_operators::derive_bus_bitwise_ops;
 
 use super::Bus;
-use crate::{api::wire_state::WireState, intermediate_repr::BusId};
+use crate::{
+    api::{bus::HasBusId, wire_state::WireState},
+    intermediate_repr::BusId,
+};
 
 static FEEDBACK_REGISTRY: OnceLock<FeedbackRegistry> = OnceLock::new();
 
@@ -80,14 +83,16 @@ impl<const W: usize> Bus<W> for FeedbackOutput<W> {
             .unwrap_or_else(|| [WireState::X; W])
     }
 
-    fn get_id(self) -> BusId {
-        self.bus_id.expect("Was set in `set_value`")
-    }
-
     fn build_intermediate_repr(
         self,
         _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
     ) {
+    }
+}
+
+impl<const W: usize> HasBusId for FeedbackOutput<W> {
+    fn get_id(self) -> BusId {
+        self.bus_id.expect("Was set in `set_value`")
     }
 }
 
@@ -106,15 +111,17 @@ mod tests {
             self.0
         }
 
-        fn get_id(self) -> BusId {
-            BusId::mock()
-        }
-
         fn build_intermediate_repr(
             self,
             _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
         ) {
             unimplemented!()
+        }
+    }
+
+    impl HasBusId for MockBus {
+        fn get_id(self) -> BusId {
+            BusId::mock()
         }
     }
 
@@ -129,15 +136,17 @@ mod tests {
             unimplemented!()
         }
 
-        fn get_id(self) -> BusId {
-            BusId::mock()
-        }
-
         fn build_intermediate_repr(
             self,
             _builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
         ) {
             unimplemented!()
+        }
+    }
+
+    impl HasBusId for MockFeedbackOutputBus {
+        fn get_id(self) -> BusId {
+            BusId::mock()
         }
     }
 

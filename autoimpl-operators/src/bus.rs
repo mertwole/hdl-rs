@@ -7,7 +7,6 @@ use syn::{
 
 // TODO
 // implement constructor creating id automatically
-// implement get_id (split Bus trait for that)
 // implement build_intermediate_repr (split Bus trait for that)
 pub struct TypeInfo {
     attrs: Vec<Attribute>,
@@ -101,6 +100,12 @@ impl TypeInfo {
             impl #impl_generics crate::api::bus::ResetBus for #struct_ident #ty_generics #reset_bus_where_clause { }
 
             impl #impl_generics crate::api::bus::ClockBus for #struct_ident #ty_generics #clock_bus_where_clause { }
+
+            impl #impl_generics crate::api::bus::HasBusId for #struct_ident #ty_generics #where_clause {
+                fn get_id(self) -> crate::intermediate_repr::BusId {
+                    self.id
+                }
+            }
         }
     }
 }

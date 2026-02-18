@@ -15,14 +15,16 @@ pub use feedback::*;
 #[cfg(test)]
 pub mod mock;
 
-pub trait Bus<const W: usize>: BusOpsMarker + Clone + Copy {
+pub trait Bus<const W: usize>: BusOpsMarker + HasBusId + Clone + Copy {
     const COMBINATIONAL_NETWORK_ID: usize;
 
     fn eval(self) -> [WireState; W];
 
-    fn get_id(self) -> BusId;
-
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder);
+}
+
+pub trait HasBusId {
+    fn get_id(self) -> BusId;
 }
 
 pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}
@@ -51,10 +53,6 @@ impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
 
     fn eval(self) -> [WireState; W] {
         [self.wire.eval()[0]; W]
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
@@ -90,10 +88,6 @@ impl<const W: usize> Bus<W> for ConstBus<W> {
 
     fn eval(self) -> [WireState; W] {
         self.values.map(From::from)
-    }
-
-    fn get_id(self) -> BusId {
-        self.id
     }
 
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {

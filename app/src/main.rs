@@ -68,10 +68,6 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
         self.value
     }
 
-    fn get_id(self) -> BusId {
-        self.id
-    }
-
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::InputBus {
@@ -103,10 +99,6 @@ impl<const W: usize, B: Bus<W>> Bus<W> for InputBusWrapper<W, B> {
 
     fn eval(self) -> [WireState; W] {
         self.bus.eval()
-    }
-
-    fn get_id(self) -> BusId {
-        self.bus.get_id()
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
