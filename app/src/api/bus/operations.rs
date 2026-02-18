@@ -139,7 +139,6 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::connections::BusConcat {
-                total_width: W1 + W2,
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
@@ -192,7 +191,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::And {
-                width: W,
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
@@ -244,7 +242,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::Or {
-                width: W,
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
@@ -296,7 +293,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::Xor {
-                width: W,
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
@@ -341,7 +337,6 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::gates::Not {
-                width: W,
                 bus: self.bus.get_id(),
                 output: self.id,
             },

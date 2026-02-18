@@ -77,13 +77,7 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
-        builder.push_element(
-            intermediate_repr::InputBus {
-                width: W,
-                id: self.id,
-            },
-            self.id,
-        );
+        builder.push_element(intermediate_repr::InputBus { id: self.id }, self.id);
     }
 }
 

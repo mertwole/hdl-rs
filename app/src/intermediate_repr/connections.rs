@@ -14,7 +14,7 @@ impl IntermediateRepr for SubBus {
     fn to_verilog(&self, module: &mut crate::verilog::VerilogModule) {
         module.add_wire(verilog::WireDefinition {
             name: self.output.to_string(),
-            width: self.to - self.from,
+            width: self.output.width(),
             // TODO: Properly convert range to the verilog indexes.
             assignment: Some(verilog::Expression::Range {
                 wire: self.input.to_string(),
@@ -26,7 +26,6 @@ impl IntermediateRepr for SubBus {
 }
 
 pub struct BusConcat {
-    pub total_width: usize,
     pub lhs: BusId,
     pub rhs: BusId,
     pub output: BusId,
@@ -36,7 +35,7 @@ impl IntermediateRepr for BusConcat {
     fn to_verilog(&self, module: &mut crate::verilog::VerilogModule) {
         module.add_wire(verilog::WireDefinition {
             name: self.output.to_string(),
-            width: self.total_width,
+            width: self.output.width(),
             assignment: Some(verilog::Expression::Concat {
                 lhs: self.lhs.to_string(),
                 rhs: self.rhs.to_string(),
@@ -46,7 +45,6 @@ impl IntermediateRepr for BusConcat {
 }
 
 pub struct FanoutBus {
-    pub output_width: usize,
     pub input: BusId,
     pub output: BusId,
 }
@@ -55,10 +53,10 @@ impl IntermediateRepr for FanoutBus {
     fn to_verilog(&self, module: &mut verilog::VerilogModule) {
         module.add_wire(verilog::WireDefinition {
             name: self.output.to_string(),
-            width: self.output_width,
+            width: self.output.width(),
             assignment: Some(verilog::Expression::Fanout {
                 wire: self.input.to_string(),
-                output_width: self.output_width,
+                output_width: self.output.width(),
             }),
         });
     }
