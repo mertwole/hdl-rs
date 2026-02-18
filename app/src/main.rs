@@ -58,7 +58,7 @@ impl<const W: usize> InputBusImpl<W> {
     fn new(value: [WireState; W]) -> Self {
         Self {
             value,
-            id: BusId::new(),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -77,13 +77,7 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
     }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
-        builder.push_element(
-            intermediate_repr::InputBus {
-                width: W,
-                id: self.id,
-            },
-            self.id,
-        );
+        builder.push_element(intermediate_repr::InputBus { id: self.id }, self.id);
     }
 }
 
@@ -100,7 +94,7 @@ impl<const W: usize, B: Bus<W>> InputBusWrapper<W, B> {
     pub fn new(bus: B) -> Self {
         Self {
             bus,
-            id: BusId::new(),
+            id: BusId::new_unique(W),
         }
     }
 }

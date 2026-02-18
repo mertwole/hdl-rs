@@ -44,7 +44,7 @@ impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {
     pub fn new(wire: B) -> Self {
         Self {
             wire,
-            id: BusId::new(),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -63,7 +63,6 @@ impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
         builder.push_element(
             intermediate_repr::connections::FanoutBus {
-                output_width: W,
                 input: self.wire.get_id(),
                 output: self.id,
             },
@@ -87,7 +86,7 @@ impl<const W: usize> ConstBus<W> {
     pub fn new(values: [LogicalWireState; W]) -> Self {
         Self {
             values,
-            id: BusId::new(),
+            id: BusId::new_unique(W),
         }
     }
 }
@@ -107,7 +106,6 @@ impl<const W: usize> Bus<W> for ConstBus<W> {
         builder.push_element(
             intermediate_repr::ConstBus {
                 id: self.id,
-                width: W,
                 value: self.values.to_vec(),
             },
             self.id,

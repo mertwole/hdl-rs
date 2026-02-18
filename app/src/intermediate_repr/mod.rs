@@ -19,7 +19,6 @@ pub trait IntermediateRepr {
 }
 
 pub struct InputBus {
-    pub width: usize,
     pub id: BusId,
 }
 
@@ -27,13 +26,12 @@ impl IntermediateRepr for InputBus {
     fn to_verilog(&self, module: &mut VerilogModule) {
         module.add_input(verilog::InputWire {
             name: self.id.to_string(),
-            width: self.width,
+            width: self.id.width(),
         });
     }
 }
 
 pub struct ConstBus {
-    pub width: usize,
     pub id: BusId,
     pub value: Vec<LogicalWireState>,
 }
@@ -44,7 +42,7 @@ impl IntermediateRepr for ConstBus {
 
         let wire = verilog::WireDefinition {
             name: self.id.to_string(),
-            width: self.width,
+            width: self.id.width(),
             assignment: Some(verilog::Expression::Const { value }),
         };
 
@@ -69,11 +67,11 @@ impl IdRegistry {
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BusId {
     id: usize,
+    width: usize,
 }
 
 impl BusId {
-    // TODO: Rename to `new_unique`;
-    pub fn new() -> Self {
+    pub fn new_unique(width: usize) -> Self {
         let mut id = ID_REGISTRY
             .get_or_init(IdRegistry::new)
             .last_id
@@ -82,12 +80,16 @@ impl BusId {
         let new_id = *id;
         *id += 1;
 
-        Self { id: new_id }
+        Self { id: new_id, width }
+    }
+
+    pub fn width(self) -> usize {
+        self.width
     }
 
     #[cfg(test)]
     pub fn mock() -> Self {
-        Self { id: 0 }
+        Self { id: 0, width: 0 }
     }
 }
 
