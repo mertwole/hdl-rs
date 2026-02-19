@@ -239,6 +239,11 @@ pub struct FlipFlop {
 
 impl FlipFlop {
     fn to_verilog(&self, module: &mut VerilogModule) {
-        //
+        module.add_register(verilog::RegisterDefinition {
+            name: self.output.to_string(),
+            width: self.output.width(),
+            clock: self.clock.to_string(),
+            data_bus: self.data.to_string(),
+        });
     }
 }
