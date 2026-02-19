@@ -1,28 +1,78 @@
-use std::{
-    collections::{HashMap, hash_map::Entry},
-    fmt::{Display, Formatter},
-    hash::Hash,
-    sync::{Arc, Mutex, OnceLock},
-};
+use std::collections::{HashMap, hash_map::Entry};
 
 use crate::{
     api::prelude::LogicalWireState,
     verilog::{self, VerilogModule},
 };
 
-pub mod connections;
-pub mod flip_flop;
-pub mod gates;
+mod bus_id;
+pub use bus_id::*;
 
-pub trait IntermediateRepr {
-    fn to_verilog(&self, module: &mut VerilogModule);
+pub struct IntermediateReprBuilder {
+    nodes: HashMap<BusId, Gate>,
+}
+
+// TODO: Add method `finalize` which will return `IntermediateRepr`.
+impl IntermediateReprBuilder {
+    pub fn new() -> Self {
+        Self {
+            nodes: HashMap::new(),
+        }
+    }
+
+    pub fn push_element(&mut self, element: Gate) {
+        if let Entry::Vacant(entry) = self.nodes.entry(element.get_id()) {
+            entry.insert(element);
+        }
+    }
+
+    // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
+    pub fn to_verilog(&self) -> VerilogModule {
+        let mut module = VerilogModule::new();
+
+        for node in self.nodes.values() {
+            node.to_verilog(&mut module);
+        }
+
+        module
+    }
+}
+
+pub enum Gate {
+    Input(InputBus),
+    Const(ConstBus),
+    Unary(UnaryGate),
+    Binary(BinaryGate),
+    FlipFlop(FlipFlop),
+}
+
+impl Gate {
+    fn get_id(&self) -> BusId {
+        match self {
+            Self::Input(input) => input.id,
+            Self::Const(const_bus) => const_bus.id,
+            Self::Unary(unary) => unary.output,
+            Self::Binary(binary) => binary.output,
+            Self::FlipFlop(flip_flop) => flip_flop.output,
+        }
+    }
+
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        match self {
+            Self::Input(input) => input.to_verilog(module),
+            Self::Const(const_bus) => const_bus.to_verilog(module),
+            Self::Unary(unary) => unary.to_verilog(module),
+            Self::Binary(binary) => binary.to_verilog(module),
+            Self::FlipFlop(flip_flop) => flip_flop.to_verilog(module),
+        }
+    }
 }
 
 pub struct InputBus {
     pub id: BusId,
 }
 
-impl IntermediateRepr for InputBus {
+impl InputBus {
     fn to_verilog(&self, module: &mut VerilogModule) {
         module.add_input(verilog::InputWire {
             name: self.id.to_string(),
@@ -36,7 +86,7 @@ pub struct ConstBus {
     pub value: Vec<LogicalWireState>,
 }
 
-impl IntermediateRepr for ConstBus {
+impl ConstBus {
     fn to_verilog(&self, module: &mut VerilogModule) {
         let value: Vec<_> = self.value.iter().copied().map(From::from).collect();
 
@@ -50,87 +100,150 @@ impl IntermediateRepr for ConstBus {
     }
 }
 
-static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
-
-pub struct IdRegistry {
-    last_id: Arc<Mutex<usize>>,
+pub struct BinaryGate {
+    pub lhs: BusId,
+    pub rhs: BusId,
+    pub output: BusId,
+    pub operator: BinaryGateOperator,
 }
 
-impl IdRegistry {
-    fn new() -> Self {
-        Self {
-            last_id: Arc::default(),
+pub enum BinaryGateOperator {
+    And,
+    Or,
+    Xor,
+    Concat,
+}
+
+impl BinaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        match self.operator {
+            BinaryGateOperator::And => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::And {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Or => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Or {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Xor => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Xor {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Concat => {
+                //
+            }
         }
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct BusId {
-    id: usize,
-    width: usize,
+pub struct UnaryGate {
+    pub input: BusId,
+    pub output: BusId,
+    pub operator: UnaryGateOperator,
 }
 
-impl BusId {
-    pub fn new_unique(width: usize) -> Self {
-        let mut id = ID_REGISTRY
-            .get_or_init(IdRegistry::new)
-            .last_id
-            .lock()
-            .expect("Concurrency is not expected");
-        let new_id = *id;
-        *id += 1;
-
-        Self { id: new_id, width }
-    }
-
-    pub fn width(self) -> usize {
-        self.width
-    }
-
-    #[cfg(test)]
-    pub fn mock() -> Self {
-        Self { id: 0, width: 0 }
-    }
+pub enum UnaryGateOperator {
+    Not,
+    ShiftLeft { shift: usize },
+    ShiftRight { shift: usize },
+    SubBus { from: usize, to: usize },
+    Fanout,
 }
 
-// TODO: Remove it. These names shouldn't appear on schematic and in verilog code.
-impl Display for BusId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "bus_{}", self.id)
-    }
-}
-
-pub struct Module {
-    inputs: Vec<BusId>,
-    outputs: Vec<BusId>,
-}
-
-pub struct IntermediateReprBuilder {
-    nodes: HashMap<BusId, Box<dyn IntermediateRepr>>,
-}
-
-// TODO: Add method `finalize` which will return `IntermediateRepr`.
-impl IntermediateReprBuilder {
-    pub fn new() -> Self {
-        Self {
-            nodes: HashMap::new(),
+impl UnaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        match self.operator {
+            UnaryGateOperator::Not => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Not {
+                        wire: self.input.to_string(),
+                    }),
+                });
+            }
+            UnaryGateOperator::ShiftLeft { shift } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::LeftShift {
+                        wire: self.input.to_string(),
+                        amount: shift,
+                    }),
+                });
+            }
+            UnaryGateOperator::ShiftRight { shift } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::RightShift {
+                        wire: self.input.to_string(),
+                        amount: shift,
+                    }),
+                });
+            }
+            UnaryGateOperator::SubBus { from, to } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    // TODO: Properly convert range to the verilog indexes.
+                    assignment: Some(verilog::Expression::Range {
+                        wire: self.input.to_string(),
+                        from,
+                        to,
+                    }),
+                });
+            }
+            UnaryGateOperator::Fanout => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Fanout {
+                        wire: self.input.to_string(),
+                        output_width: self.output.width(),
+                    }),
+                });
+            }
         }
     }
+}
 
-    pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
-        if let Entry::Vacant(entry) = self.nodes.entry(id) {
-            entry.insert(Box::from(element));
-        }
-    }
+pub struct FlipFlop {
+    pub data: BusId,
+    // TODO: Process `reset` and `set`.
+    pub reset: BusId,
+    pub set: BusId,
 
-    // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
-    pub fn to_verilog(&self) -> VerilogModule {
-        let mut module = VerilogModule::new();
+    pub clock: BusId,
 
-        for node in self.nodes.values() {
-            node.to_verilog(&mut module);
-        }
+    pub output: BusId,
+}
 
-        module
+impl FlipFlop {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        module.add_register(verilog::RegisterDefinition {
+            name: self.output.to_string(),
+            width: self.output.width(),
+            clock: self.clock.to_string(),
+            data_bus: self.data.to_string(),
+        });
     }
 }

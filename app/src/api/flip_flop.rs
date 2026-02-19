@@ -88,16 +88,15 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus, R: Bus<W> + ResetBus, S: B
         self,
         builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
     ) {
-        builder.push_element(
-            intermediate_repr::flip_flop::FlipFlop {
+        builder.push_element(intermediate_repr::Gate::FlipFlop(
+            intermediate_repr::FlipFlop {
                 data: self.data.get_id(),
                 reset: self.reset.get_id(),
                 set: self.set.get_id(),
                 clock: self.clock.get_id(),
                 output: self.id,
             },
-            self.id,
-        );
+        ));
 
         self.data.build_intermediate_repr(builder);
         self.reset.build_intermediate_repr(builder);
