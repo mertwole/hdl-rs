@@ -86,11 +86,13 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::connections::SubBus {
+            intermediate_repr::UnaryGate {
                 input: self.bus.get_id(),
-                from: FROM,
-                to: FROM + WIDTH,
                 output: self.id,
+                operator: intermediate_repr::UnaryGateOperator::SubBus {
+                    from: FROM,
+                    to: FROM + WIDTH,
+                },
             },
             self.id,
         );
@@ -138,10 +140,11 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::connections::BusConcat {
+            intermediate_repr::BinaryGate {
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
+                operator: intermediate_repr::BinaryGateOperator::Concat,
             },
             self.id,
         );
@@ -190,10 +193,11 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::gates::And {
+            intermediate_repr::BinaryGate {
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
+                operator: intermediate_repr::BinaryGateOperator::And,
             },
             self.id,
         );
@@ -241,10 +245,11 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::gates::Or {
+            intermediate_repr::BinaryGate {
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
+                operator: intermediate_repr::BinaryGateOperator::Or,
             },
             self.id,
         );
@@ -292,10 +297,11 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::gates::Xor {
+            intermediate_repr::BinaryGate {
                 lhs: self.lhs.get_id(),
                 rhs: self.rhs.get_id(),
                 output: self.id,
+                operator: intermediate_repr::BinaryGateOperator::Xor,
             },
             self.id,
         );
@@ -336,9 +342,10 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
 
     fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
         builder.push_element(
-            intermediate_repr::gates::Not {
-                bus: self.bus.get_id(),
+            intermediate_repr::UnaryGate {
+                input: self.bus.get_id(),
                 output: self.id,
+                operator: intermediate_repr::UnaryGateOperator::Not,
             },
             self.id,
         );
@@ -386,11 +393,10 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S
         builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
     ) {
         builder.push_element(
-            intermediate_repr::connections::BusShiftLeft {
-                width: W,
+            intermediate_repr::UnaryGate {
                 input: self.bus.get_id(),
                 output: self.id,
-                shift: S,
+                operator: intermediate_repr::UnaryGateOperator::ShiftRight { shift: S },
             },
             self.id,
         );
@@ -444,11 +450,10 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S>
         builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
     ) {
         builder.push_element(
-            intermediate_repr::connections::BusShiftLeft {
-                width: W,
+            intermediate_repr::UnaryGate {
                 input: self.bus.get_id(),
                 output: self.id,
-                shift: S,
+                operator: intermediate_repr::UnaryGateOperator::ShiftLeft { shift: S },
             },
             self.id,
         );

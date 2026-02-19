@@ -10,9 +10,7 @@ use crate::{
     verilog::{self, VerilogModule},
 };
 
-pub mod connections;
 pub mod flip_flop;
-pub mod gates;
 
 pub trait IntermediateRepr {
     fn to_verilog(&self, module: &mut VerilogModule);
@@ -53,6 +51,7 @@ impl IntermediateRepr for ConstBus {
 pub struct BinaryGate {
     pub lhs: BusId,
     pub rhs: BusId,
+    pub output: BusId,
     pub operator: BinaryGateOperator,
 }
 
@@ -71,6 +70,7 @@ impl IntermediateRepr for BinaryGate {
 
 pub struct UnaryGate {
     pub input: BusId,
+    pub output: BusId,
     pub operator: UnaryGateOperator,
 }
 
