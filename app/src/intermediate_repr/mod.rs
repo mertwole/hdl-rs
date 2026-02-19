@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
-    fmt::{Display, Formatter},
+    fmt::{Binary, Display, Formatter},
     hash::Hash,
     sync::{Arc, Mutex, OnceLock},
 };
@@ -47,6 +47,44 @@ impl IntermediateRepr for ConstBus {
         };
 
         module.add_wire(wire);
+    }
+}
+
+pub struct BinaryGate {
+    pub lhs: BusId,
+    pub rhs: BusId,
+    pub operator: BinaryGateOperator,
+}
+
+pub enum BinaryGateOperator {
+    And,
+    Or,
+    Xor,
+    Concat,
+}
+
+impl IntermediateRepr for BinaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        todo!()
+    }
+}
+
+pub struct UnaryGate {
+    pub input: BusId,
+    pub operator: UnaryGateOperator,
+}
+
+pub enum UnaryGateOperator {
+    Not,
+    ShiftLeft { shift: usize },
+    ShiftRight { shift: usize },
+    SubBus { from: usize, to: usize },
+    Fanout,
+}
+
+impl IntermediateRepr for UnaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        todo!()
     }
 }
 
