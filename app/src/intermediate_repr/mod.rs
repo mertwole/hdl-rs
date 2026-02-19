@@ -1,6 +1,9 @@
 use std::collections::{HashMap, hash_map::Entry};
 
-use crate::{api::prelude::LogicalWireState, verilog::VerilogModule};
+use crate::{
+    api::prelude::LogicalWireState,
+    verilog::{self, VerilogModule},
+};
 
 mod bus_id;
 pub use bus_id::*;
@@ -55,7 +58,13 @@ impl Gate {
     }
 
     fn to_verilog(&self, module: &mut VerilogModule) {
-        todo!()
+        match self {
+            Self::Input(input) => input.to_verilog(module),
+            Self::Const(const_bus) => const_bus.to_verilog(module),
+            Self::Unary(unary) => unary.to_verilog(module),
+            Self::Binary(binary) => binary.to_verilog(module),
+            Self::FlipFlop(flip_flop) => flip_flop.to_verilog(module),
+        }
     }
 }
 
@@ -63,9 +72,32 @@ pub struct InputBus {
     pub id: BusId,
 }
 
+impl InputBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        module.add_input(verilog::InputWire {
+            name: self.id.to_string(),
+            width: self.id.width(),
+        });
+    }
+}
+
 pub struct ConstBus {
     pub id: BusId,
     pub value: Vec<LogicalWireState>,
+}
+
+impl ConstBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        let value: Vec<_> = self.value.iter().copied().map(From::from).collect();
+
+        let wire = verilog::WireDefinition {
+            name: self.id.to_string(),
+            width: self.id.width(),
+            assignment: Some(verilog::Expression::Const { value }),
+        };
+
+        module.add_wire(wire);
+    }
 }
 
 pub struct BinaryGate {
@@ -82,6 +114,46 @@ pub enum BinaryGateOperator {
     Concat,
 }
 
+impl BinaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        match self.operator {
+            BinaryGateOperator::And => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::And {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Or => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Or {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Xor => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Xor {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
+            }
+            BinaryGateOperator::Concat => {
+                //
+            }
+        }
+    }
+}
+
 pub struct UnaryGate {
     pub input: BusId,
     pub output: BusId,
@@ -96,6 +168,64 @@ pub enum UnaryGateOperator {
     Fanout,
 }
 
+impl UnaryGate {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        match self.operator {
+            UnaryGateOperator::Not => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Not {
+                        wire: self.input.to_string(),
+                    }),
+                });
+            }
+            UnaryGateOperator::ShiftLeft { shift } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::LeftShift {
+                        wire: self.input.to_string(),
+                        amount: shift,
+                    }),
+                });
+            }
+            UnaryGateOperator::ShiftRight { shift } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::RightShift {
+                        wire: self.input.to_string(),
+                        amount: shift,
+                    }),
+                });
+            }
+            UnaryGateOperator::SubBus { from, to } => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    // TODO: Properly convert range to the verilog indexes.
+                    assignment: Some(verilog::Expression::Range {
+                        wire: self.input.to_string(),
+                        from,
+                        to,
+                    }),
+                });
+            }
+            UnaryGateOperator::Fanout => {
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Fanout {
+                        wire: self.input.to_string(),
+                        output_width: self.output.width(),
+                    }),
+                });
+            }
+        }
+    }
+}
+
 pub struct FlipFlop {
     pub data: BusId,
     // TODO: Process `reset` and `set`.
@@ -105,4 +235,10 @@ pub struct FlipFlop {
     pub clock: BusId,
 
     pub output: BusId,
+}
+
+impl FlipFlop {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        //
+    }
 }
