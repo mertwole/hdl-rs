@@ -2,6 +2,7 @@ use std::{
     collections::{HashMap, hash_map::Entry},
     fmt::{Binary, Display, Formatter},
     hash::Hash,
+    process::Output,
     sync::{Arc, Mutex, OnceLock},
 };
 
@@ -10,42 +11,31 @@ use crate::{
     verilog::{self, VerilogModule},
 };
 
-pub mod flip_flop;
+pub enum Gate {
+    Input(InputBus),
+    Const(ConstBus),
+    Unary(UnaryGate),
+    Binary(BinaryGate),
+    FlipFlop(FlipFlop),
+}
 
-pub trait IntermediateRepr {
-    fn to_verilog(&self, module: &mut VerilogModule);
+impl Gate {
+    fn get_id(&self) -> BusId {
+        todo!()
+    }
+
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        todo!()
+    }
 }
 
 pub struct InputBus {
     pub id: BusId,
 }
 
-impl IntermediateRepr for InputBus {
-    fn to_verilog(&self, module: &mut VerilogModule) {
-        module.add_input(verilog::InputWire {
-            name: self.id.to_string(),
-            width: self.id.width(),
-        });
-    }
-}
-
 pub struct ConstBus {
     pub id: BusId,
     pub value: Vec<LogicalWireState>,
-}
-
-impl IntermediateRepr for ConstBus {
-    fn to_verilog(&self, module: &mut VerilogModule) {
-        let value: Vec<_> = self.value.iter().copied().map(From::from).collect();
-
-        let wire = verilog::WireDefinition {
-            name: self.id.to_string(),
-            width: self.id.width(),
-            assignment: Some(verilog::Expression::Const { value }),
-        };
-
-        module.add_wire(wire);
-    }
 }
 
 pub struct BinaryGate {
@@ -62,12 +52,6 @@ pub enum BinaryGateOperator {
     Concat,
 }
 
-impl IntermediateRepr for BinaryGate {
-    fn to_verilog(&self, module: &mut VerilogModule) {
-        todo!()
-    }
-}
-
 pub struct UnaryGate {
     pub input: BusId,
     pub output: BusId,
@@ -82,10 +66,15 @@ pub enum UnaryGateOperator {
     Fanout,
 }
 
-impl IntermediateRepr for UnaryGate {
-    fn to_verilog(&self, module: &mut VerilogModule) {
-        todo!()
-    }
+pub struct FlipFlop {
+    pub data: BusId,
+    // TODO: Process `reset` and `set`.
+    pub reset: BusId,
+    pub set: BusId,
+
+    pub clock: BusId,
+
+    pub output: BusId,
 }
 
 static ID_REGISTRY: OnceLock<IdRegistry> = OnceLock::new();
@@ -144,7 +133,7 @@ pub struct Module {
 }
 
 pub struct IntermediateReprBuilder {
-    nodes: HashMap<BusId, Box<dyn IntermediateRepr>>,
+    nodes: HashMap<BusId, Gate>,
 }
 
 // TODO: Add method `finalize` which will return `IntermediateRepr`.
@@ -155,9 +144,9 @@ impl IntermediateReprBuilder {
         }
     }
 
-    pub fn push_element(&mut self, element: impl IntermediateRepr + 'static, id: BusId) {
-        if let Entry::Vacant(entry) = self.nodes.entry(id) {
-            entry.insert(Box::from(element));
+    pub fn push_element(&mut self, element: Gate) {
+        if let Entry::Vacant(entry) = self.nodes.entry(element.get_id()) {
+            entry.insert(element);
         }
     }
 
