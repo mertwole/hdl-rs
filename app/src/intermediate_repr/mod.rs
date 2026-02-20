@@ -54,10 +54,10 @@ pub struct OutputBus {
 }
 
 impl OutputBus {
-    fn to_verilog(&self, module: &mut VerilogModule) {
+    fn to_verilog(self, module: &mut VerilogModule) {
         module.add_output(verilog::OutputWire {
             name: self.id.to_string(),
-            output_name: format!("{}_output", self.id.to_string()),
+            output_name: format!("{}_output", self.id),
             width: self.id.width(),
         });
     }
