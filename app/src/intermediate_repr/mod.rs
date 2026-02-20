@@ -173,7 +173,14 @@ impl BinaryGate {
                 });
             }
             BinaryGateOperator::Concat => {
-                //
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Concat {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
             }
         }
     }
