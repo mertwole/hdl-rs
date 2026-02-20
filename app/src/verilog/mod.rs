@@ -219,9 +219,9 @@ impl Expression {
             Self::Not { wire } => format!("~{wire}"),
             Self::LeftShift { wire, amount } => format!("{wire} << {amount}"),
             Self::RightShift { wire, amount } => format!("{wire} >> {amount}"),
-            Self::Range { .. } => String::from("TODO"),
+            Self::Range { wire, from, to } => format!("TODO: Range {}[{}..{}]", wire, from, to),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
-            Self::Fanout { .. } => String::from("TODO"),
+            Self::Fanout { wire, .. } => format!("TODO Fanout: {}", wire),
             Self::Assign { wire } => wire.clone(),
         }
     }
