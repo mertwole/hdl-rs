@@ -124,6 +124,7 @@ pub struct InputWire {
 pub struct OutputWire {
     pub name: String,
     pub width: usize,
+    pub assignment: Expression,
 }
 
 pub struct RegisterDefinition {
@@ -179,6 +180,9 @@ pub enum Expression {
         wire: String,
         output_width: usize,
     },
+    Assign {
+        wire: String,
+    },
 }
 
 impl Expression {
@@ -200,6 +204,7 @@ impl Expression {
             Self::Range { .. } => String::from("TODO"),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
             Self::Fanout { .. } => String::from("TODO"),
+            Self::Assign { wire } => wire.clone(),
         }
     }
 }

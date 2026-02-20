@@ -1,8 +1,11 @@
-use std::collections::{HashMap, hash_map::Entry};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    process::Output,
+};
 
 use crate::{
     api::prelude::LogicalWireState,
-    verilog::{self, VerilogModule},
+    verilog::{self, OutputWire, VerilogModule},
 };
 
 mod bus_id;
@@ -40,6 +43,7 @@ impl IntermediateReprBuilder {
 
 pub enum Gate {
     Input(InputBus),
+    Output(OutputBus),
     Const(ConstBus),
     Unary(UnaryGate),
     Binary(BinaryGate),
@@ -50,6 +54,7 @@ impl Gate {
     fn get_id(&self) -> BusId {
         match self {
             Self::Input(input) => input.id,
+            Self::Output(output) => output.id,
             Self::Const(const_bus) => const_bus.id,
             Self::Unary(unary) => unary.output,
             Self::Binary(binary) => binary.output,
@@ -60,6 +65,7 @@ impl Gate {
     fn to_verilog(&self, module: &mut VerilogModule) {
         match self {
             Self::Input(input) => input.to_verilog(module),
+            Self::Output(output) => output.to_verilog(module),
             Self::Const(const_bus) => const_bus.to_verilog(module),
             Self::Unary(unary) => unary.to_verilog(module),
             Self::Binary(binary) => binary.to_verilog(module),
@@ -77,6 +83,22 @@ impl InputBus {
         module.add_input(verilog::InputWire {
             name: self.id.to_string(),
             width: self.id.width(),
+        });
+    }
+}
+
+pub struct OutputBus {
+    pub id: BusId,
+}
+
+impl OutputBus {
+    fn to_verilog(&self, module: &mut VerilogModule) {
+        module.add_output(verilog::OutputWire {
+            name: format!("{}_output", self.id.to_string()),
+            width: self.id.width(),
+            assignment: verilog::Expression::Assign {
+                wire: self.id.to_string(),
+            },
         });
     }
 }
