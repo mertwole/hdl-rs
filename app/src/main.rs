@@ -21,6 +21,7 @@ fn main() {
 
     let mut builder = intermediate_repr::IntermediateReprBuilder::new();
     out.build_intermediate_repr(&mut builder);
+    builder.push_output(out.get_id());
     let verilog_mod = builder.to_verilog();
 
     let verilog = verilog_mod.generate_verilog();

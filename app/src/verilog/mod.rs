@@ -36,6 +36,7 @@ impl VerilogModule {
         let module_io = self.generate_module_io();
         let wire_defs = self.generate_wire_definitions();
         let reg_defs = self.generate_reg_definitions();
+        let assignments = self.generate_assignments();
         let always_blocks = self.generate_always_blocks();
 
         format!(
@@ -45,6 +46,8 @@ impl VerilogModule {
         );
         \n\
         {wire_defs}\n\
+        \n\
+        {assignments}\n\
         \n\
         {reg_defs}\n\
         \n\
@@ -61,10 +64,12 @@ impl VerilogModule {
             .iter()
             .map(|input| format!("input [{} - 1:0] {}", input.width, input.name));
 
-        let outputs = self
-            .outputs
-            .iter()
-            .map(|output| format!("output wire [{} - 1:0] {}", output.width, output.name));
+        let outputs = self.outputs.iter().map(|output| {
+            format!(
+                "output wire [{} - 1:0] {}",
+                output.width, output.output_name
+            )
+        });
 
         inputs
             .chain(outputs)
@@ -100,6 +105,14 @@ impl VerilogModule {
             .collect()
     }
 
+    fn generate_assignments(&self) -> String {
+        self.outputs
+            .iter()
+            .map(|output| format!("assign {} = {};", output.output_name, output.name))
+            .intersperse(String::from("\n"))
+            .collect()
+    }
+
     fn generate_always_blocks(&self) -> String {
         self.registers
             .iter()
@@ -122,9 +135,14 @@ pub struct InputWire {
 }
 
 pub struct OutputWire {
+    pub output_name: String,
     pub name: String,
     pub width: usize,
-    pub assignment: Expression,
+}
+
+struct Assignment {
+    assign_to: String,
+    assign: String,
 }
 
 pub struct RegisterDefinition {
