@@ -1,4 +1,4 @@
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 
 use crate::{
     api::prelude::LogicalWireState,
@@ -10,6 +10,7 @@ pub use bus_id::*;
 
 pub struct IntermediateReprBuilder {
     nodes: HashMap<BusId, Gate>,
+    outputs: HashSet<OutputBus>,
 }
 
 // TODO: Add method `finalize` which will return `IntermediateRepr`.
@@ -17,6 +18,7 @@ impl IntermediateReprBuilder {
     pub fn new() -> Self {
         Self {
             nodes: HashMap::new(),
+            outputs: HashSet::new(),
         }
     }
 
@@ -24,6 +26,10 @@ impl IntermediateReprBuilder {
         if let Entry::Vacant(entry) = self.nodes.entry(element.get_id()) {
             entry.insert(element);
         }
+    }
+
+    pub fn push_output(&mut self, output: BusId) {
+        self.outputs.insert(OutputBus { id: output });
     }
 
     // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
@@ -34,7 +40,26 @@ impl IntermediateReprBuilder {
             node.to_verilog(&mut module);
         }
 
+        for output in &self.outputs {
+            output.to_verilog(&mut module);
+        }
+
         module
+    }
+}
+
+#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+pub struct OutputBus {
+    pub id: BusId,
+}
+
+impl OutputBus {
+    fn to_verilog(self, module: &mut VerilogModule) {
+        module.add_output(verilog::OutputWire {
+            name: self.id.to_string(),
+            output_name: format!("{}_output", self.id),
+            width: self.id.width(),
+        });
     }
 }
 
@@ -148,7 +173,14 @@ impl BinaryGate {
                 });
             }
             BinaryGateOperator::Concat => {
-                //
+                module.add_wire(verilog::WireDefinition {
+                    name: self.output.to_string(),
+                    width: self.output.width(),
+                    assignment: Some(verilog::Expression::Concat {
+                        lhs: self.lhs.to_string(),
+                        rhs: self.rhs.to_string(),
+                    }),
+                });
             }
         }
     }
