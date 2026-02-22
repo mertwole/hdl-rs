@@ -12,8 +12,8 @@ pub trait BusOps<const W: usize>: Bus<W> {
 
     fn sub_bus<const FROM: usize, const TO: usize>(self) -> SubBus<W, Self, FROM, { FROM - TO + 1 }>
     where
-        [(); FROM - TO + 1]:,
-        [(); W - TO]:,
+        [(); FROM - TO]:,
+        [(); W - FROM - 1]:,
     {
         SubBus::new(self)
     }
@@ -90,7 +90,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
                 output: self.id,
                 operator: intermediate_repr::UnaryGateOperator::SubBus {
                     from: FROM,
-                    to: FROM + WIDTH,
+                    to: FROM - WIDTH + 1,
                 },
             },
         ));
