@@ -3,7 +3,7 @@
 #![feature(iter_intersperse)]
 #![allow(dead_code)]
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
 
 mod api;
 use api::prelude::*;
@@ -29,7 +29,7 @@ fn main() {
     println!("{verilog}");
 }
 
-fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
+fn module_example<A: InputBus<8> + ClockBus, B: InputBus<8>>(
     a: InputBusWrapper<8, A>,
     b: InputBusWrapper<8, B>,
 ) -> impl Bus<16> {
@@ -49,7 +49,6 @@ fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus]
-#[derive_reset_bus]
 struct InputBusImpl<const W: usize> {
     value: [WireState; W],
     id: BusId,
@@ -87,7 +86,6 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 struct InputBusWrapper<const W: usize, B: Bus<W>> {
     bus: B,
     id: BusId,
