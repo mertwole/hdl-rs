@@ -260,12 +260,7 @@ impl UnaryGate {
 
 pub struct FlipFlop {
     pub data: BusId,
-    // TODO: Process `reset` and `set`.
-    pub reset: BusId,
-    pub set: BusId,
-
     pub clock: BusId,
-
     pub output: BusId,
 }
 
