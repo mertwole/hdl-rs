@@ -1,4 +1,4 @@
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
 
 use crate::{
     api::prelude::*,
@@ -54,7 +54,6 @@ pub trait BusOpsMarker {}
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(WIDTH)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 pub struct SubBus<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> {
     bus: B,
     id: BusId,
@@ -103,7 +102,6 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W1 + W2)]
 #[derive_clock_bus(B1, B2)]
-#[derive_reset_bus(B1, B2)]
 pub struct BusConcat<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> {
     lhs: B1,
     rhs: B2,
@@ -155,7 +153,6 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(BL, BR)]
-#[derive_reset_bus(BL, BR)]
 pub struct BusAnd<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
@@ -207,7 +204,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(BL, BR)]
-#[derive_reset_bus(BL, BR)]
 pub struct BusOr<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
@@ -258,7 +254,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(BL, BR)]
-#[derive_reset_bus(BL, BR)]
 pub struct BusXor<const W: usize, BL: Bus<W>, BR: Bus<W>> {
     lhs: BL,
     rhs: BR,
@@ -309,7 +304,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 pub struct BusNot<const W: usize, B: Bus<W>> {
     bus: B,
     id: BusId,
@@ -351,7 +345,6 @@ impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 pub struct BusShiftRight<const W: usize, B: Bus<W>, const S: usize> {
     bus: B,
     id: BusId,
@@ -401,7 +394,6 @@ impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 pub struct BusShiftLeft<const W: usize, B: Bus<W>, const S: usize> {
     bus: B,
     id: BusId,

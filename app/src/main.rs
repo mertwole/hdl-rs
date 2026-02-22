@@ -3,7 +3,7 @@
 #![feature(iter_intersperse)]
 #![allow(dead_code)]
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus, derive_reset_bus};
+use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
 
 mod api;
 use api::prelude::*;
@@ -29,7 +29,7 @@ fn main() {
     println!("{verilog}");
 }
 
-fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
+fn module_example<A: InputBus<8> + ClockBus, B: InputBus<8>>(
     a: InputBusWrapper<8, A>,
     b: InputBusWrapper<8, B>,
 ) -> impl Bus<16> {
@@ -39,7 +39,7 @@ fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
     let a_middle = a.wire_at::<3>();
     let a_right = a.sub_bus::<4, 8>();
 
-    let ff = FlipFlopBus::resets_to_value(a_left, a_middle, a_middle, [LogicalWireState::One; 3]);
+    let ff = FlipFlopBus::new(a_left, a_middle);
 
     let a_middle_inv = !a_middle;
 
@@ -49,7 +49,6 @@ fn module_example<A: InputBus<8> + ClockBus + ResetBus, B: InputBus<8>>(
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus]
-#[derive_reset_bus]
 struct InputBusImpl<const W: usize> {
     value: [WireState; W],
     id: BusId,
@@ -87,7 +86,6 @@ impl<const W: usize> Bus<W> for InputBusImpl<W> {
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
 #[derive_clock_bus(B)]
-#[derive_reset_bus(B)]
 struct InputBusWrapper<const W: usize, B: Bus<W>> {
     bus: B,
     id: BusId,
@@ -155,12 +153,7 @@ mod tests {
     ) -> impl Bus<2> {
         let mut feedback = FeedbackOutput::new();
         let and = a & feedback;
-        let ff = FlipFlopBus::new(
-            and,
-            ConstBus::new([LogicalWireState::Zero]),
-            ConstBus::new([LogicalWireState::Zero; 2]),
-            ConstBus::new([LogicalWireState::Zero; 2]),
-        );
+        let ff = FlipFlopBus::new(and, ConstBus::new([LogicalWireState::Zero]));
         feedback.set_value(and, ff);
 
         ff
