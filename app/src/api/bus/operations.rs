@@ -10,10 +10,10 @@ pub trait BusOps<const W: usize>: Bus<W> {
         SubBus::new(self)
     }
 
-    fn sub_bus<const FROM: usize, const TO: usize>(self) -> SubBus<W, Self, FROM, { TO - FROM }>
+    fn sub_bus<const FROM: usize, const TO: usize>(self) -> SubBus<W, Self, FROM, { FROM - TO + 1 }>
     where
-        [(); TO - FROM]:,
-        [(); W - TO]:,
+        [(); FROM - TO]:,
+        [(); W - FROM - 1]:,
     {
         SubBus::new(self)
     }
@@ -74,7 +74,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
 
     fn eval(self) -> [WireState; WIDTH] {
-        self.bus.eval()[FROM..FROM + WIDTH]
+        self.bus.eval()[(W - 1 - FROM)..W - 1 - FROM + WIDTH]
             .try_into()
             .expect("Checked to match the width")
     }
@@ -90,7 +90,7 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
                 output: self.id,
                 operator: intermediate_repr::UnaryGateOperator::SubBus {
                     from: FROM,
-                    to: FROM + WIDTH,
+                    to: FROM - WIDTH + 1,
                 },
             },
         ));
@@ -470,17 +470,17 @@ mod tests {
     fn test_sub_bus() {
         let bus = MockBus::new(VALUES);
 
-        let sub_bus = bus.sub_bus::<4, 6>();
-        assert_eq!(sub_bus.eval(), VALUES[4..6]);
+        let sub_bus = bus.sub_bus::<5, 4>();
+        assert_eq!(sub_bus.eval(), VALUES[2..4]);
 
-        let sub_bus = bus.sub_bus::<0, 3>();
-        assert_eq!(sub_bus.eval(), VALUES[..3]);
+        let sub_bus = bus.sub_bus::<2, 0>();
+        assert_eq!(sub_bus.eval(), VALUES[5..8]);
 
-        let sub_bus = bus.sub_bus::<3, 8>();
-        assert_eq!(sub_bus.eval(), VALUES[3..8]);
+        let sub_bus = bus.sub_bus::<7, 3>();
+        assert_eq!(sub_bus.eval(), VALUES[0..5]);
 
         let sub_bus = bus.sub_bus::<1, 1>();
-        assert_eq!(sub_bus.eval(), VALUES[1..1]);
+        assert_eq!(sub_bus.eval(), VALUES[6..7]);
     }
 
     #[test]
@@ -497,17 +497,18 @@ mod tests {
         );
     }
 
+    #[allow(clippy::identity_op)]
     #[test]
     fn test_wire_at() {
         let bus = MockBus::new(VALUES);
 
         let wire_4 = bus.wire_at::<4>();
-        assert_eq!(wire_4.eval(), [WireState::Zero]);
+        assert_eq!(wire_4.eval(), [VALUES[VALUES.len() - 1 - 4]]);
 
         let wire_0 = bus.wire_at::<0>();
-        assert_eq!(wire_0.eval(), [WireState::Zero]);
+        assert_eq!(wire_0.eval(), [VALUES[VALUES.len() - 1 - 0]]);
 
         let wire_7 = bus.wire_at::<7>();
-        assert_eq!(wire_7.eval(), [WireState::Z]);
+        assert_eq!(wire_7.eval(), [VALUES[VALUES.len() - 1 - 7]]);
     }
 }

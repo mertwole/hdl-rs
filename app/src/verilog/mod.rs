@@ -219,7 +219,7 @@ impl Expression {
             Self::Not { wire } => format!("~{wire}"),
             Self::LeftShift { wire, amount } => format!("{wire} << {amount}"),
             Self::RightShift { wire, amount } => format!("{wire} >> {amount}"),
-            Self::Range { wire, from, to } => format!("TODO: Range {}[{}..{}]", wire, from, to),
+            Self::Range { wire, from, to } => format!("{}[{}:{}]", wire, from, to),
             Self::Concat { lhs, rhs } => format!("{{{lhs}, {rhs}}}"),
             Self::Fanout { wire, .. } => format!("TODO Fanout: {}", wire),
             Self::Assign { wire } => wire.clone(),

@@ -35,9 +35,9 @@ fn module_example<A: InputBus<8> + ClockBus, B: InputBus<8>>(
 ) -> impl Bus<16> {
     let c = a & b | a ^ !b;
 
-    let a_left = c.sub_bus::<0, 3>();
+    let a_left = c.sub_bus::<3, 1>();
     let a_middle = a.wire_at::<3>();
-    let a_right = a.sub_bus::<4, 8>();
+    let a_right = a.sub_bus::<7, 4>();
 
     let ff = FlipFlopBus::new(a_left, a_middle);
 
@@ -139,9 +139,9 @@ mod tests {
     ) -> impl Bus<16> {
         let c = a & b | a ^ !b;
 
-        let a_left = c.sub_bus::<0, 3>();
+        let a_left = c.sub_bus::<3, 1>();
         let a_middle = a.wire_at::<3>();
-        let a_right = a.sub_bus::<4, 8>();
+        let a_right = a.sub_bus::<7, 4>();
 
         let a_middle_inv = !a_middle;
 
