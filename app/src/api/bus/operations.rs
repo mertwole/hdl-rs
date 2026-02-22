@@ -497,6 +497,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::identity_op)]
     #[test]
     fn test_wire_at() {
         let bus = MockBus::new(VALUES);
