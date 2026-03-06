@@ -2,6 +2,7 @@ pub mod bus;
 pub mod concat;
 pub mod flip_flop;
 pub mod wire_state;
+mod simulation;
 
 #[cfg(feature = "testing")]
 pub mod testing;
