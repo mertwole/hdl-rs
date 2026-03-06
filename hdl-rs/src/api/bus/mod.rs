@@ -27,6 +27,39 @@ pub trait Bus<const W: usize>: BusOpsMarker + Clone + Copy {
 
 pub trait InputBus<const W: usize>: Bus<W> + Clone + Copy {}
 
+#[derive(Clone, Copy)]
+#[derive_bus_bitwise_ops(W)]
+#[derive_clock_bus(B)]
+pub struct InputBusWrapper<const W: usize, B: InputBus<W>> {
+    bus: B,
+    id: BusId,
+}
+
+impl<const W: usize, B: InputBus<W>> InputBusWrapper<W, B> {
+    pub fn new(bus: B) -> Self {
+        Self {
+            bus,
+            id: BusId::new_unique(W),
+        }
+    }
+}
+
+impl<const W: usize, B: InputBus<W>> Bus<W> for InputBusWrapper<W, B> {
+    const COMBINATIONAL_NETWORK_ID: usize = 0;
+
+    fn eval(self) -> [WireState; W] {
+        self.bus.eval()
+    }
+
+    fn get_id(self) -> BusId {
+        self.bus.get_id()
+    }
+
+    fn build_intermediate_repr(self, builder: &mut intermediate_repr::IntermediateReprBuilder) {
+        self.bus.build_intermediate_repr(builder);
+    }
+}
+
 pub trait ClockBus {}
 
 pub trait ResetBus {}

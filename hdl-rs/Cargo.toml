@@ -6,3 +6,6 @@ authors.workspace = true
 
 [dependencies]
 derive-macros.workspace = true
+
+[features]
+testing = []
