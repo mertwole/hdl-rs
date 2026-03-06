@@ -1,10 +1,10 @@
 #[macro_export]
-macro_rules! concat {
+macro_rules! concat_buses {
     ($only_one:expr) => {
         $only_one
     };
     ($first:expr, $($rest:expr),+) => {
-        $crate::api::bus::BusOps::append($first, ($crate::concat!($($rest),*)))
+        $crate::api::bus::BusOps::append($first, ($crate::concat_buses!($($rest),*)))
     };
 }
 
@@ -25,13 +25,13 @@ mod tests {
         let bus_2 = MockBus::new(BUS_2_VALUES);
         let bus_3 = MockBus::new(BUS_3_VALUES);
 
-        let bus_bus = concat!(bus_1, bus_2);
+        let bus_bus = concat_buses!(bus_1, bus_2);
         assert_eq!(
             bus_bus.eval().to_vec(),
             [&BUS_1_VALUES[..], &BUS_2_VALUES[..]].concat()
         );
 
-        let bus_bus_bus = concat!(bus_1, bus_2, bus_3);
+        let bus_bus_bus = concat_buses!(bus_1, bus_2, bus_3);
         assert_eq!(
             bus_bus_bus.eval().to_vec(),
             [&BUS_1_VALUES[..], &BUS_2_VALUES[..], &BUS_3_VALUES[..]].concat()

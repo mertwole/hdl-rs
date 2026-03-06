@@ -1,4 +1,4 @@
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
+use derive_macros::{derive_bus_bitwise_ops, derive_clock_bus};
 
 use crate::{
     api::prelude::*,
@@ -12,8 +12,8 @@ pub trait BusOps<const W: usize>: Bus<W> {
 
     fn sub_bus<const FROM: usize, const TO: usize>(self) -> SubBus<W, Self, FROM, { FROM - TO + 1 }>
     where
-        [(); FROM - TO]:,
         [(); W - FROM - 1]:,
+        [(); FROM - TO]:,
     {
         SubBus::new(self)
     }

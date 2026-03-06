@@ -106,6 +106,7 @@ impl WireState {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> WireState {
         match self {
             WireState::Zero => WireState::One,

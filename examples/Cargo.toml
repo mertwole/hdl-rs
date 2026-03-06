@@ -1,0 +1,11 @@
+[package]
+name = "hdl-rs-examples"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+hdl-rs.workspace = true
+
+[dev-dependencies] 
+hdl-rs = { workspace = true, features = ["testing"] }

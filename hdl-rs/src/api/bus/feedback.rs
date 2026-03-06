@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc, sync::OnceLock};
 
-use autoimpl_operators::derive_bus_bitwise_ops;
+use derive_macros::derive_bus_bitwise_ops;
 
 use super::Bus;
 use crate::{api::wire_state::WireState, intermediate_repr::BusId};
@@ -37,6 +37,7 @@ pub struct FeedbackOutput<const W: usize> {
 }
 
 impl<const W: usize> FeedbackOutput<W> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let id = FEEDBACK_REGISTRY
             .get_or_init(FeedbackRegistry::new)
