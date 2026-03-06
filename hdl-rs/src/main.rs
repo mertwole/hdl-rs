@@ -3,7 +3,7 @@
 #![feature(iter_intersperse)]
 #![allow(dead_code)]
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
+use derive_macros::{derive_bus_bitwise_ops, derive_clock_bus};
 
 mod api;
 use api::prelude::*;

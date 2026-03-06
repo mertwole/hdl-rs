@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc, sync::OnceLock};
 
-use autoimpl_operators::derive_bus_bitwise_ops;
+use derive_macros::derive_bus_bitwise_ops;
 
 use super::Bus;
 use crate::{api::wire_state::WireState, intermediate_repr::BusId};

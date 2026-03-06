@@ -5,4 +5,4 @@ edition.workspace = true
 authors.workspace = true
 
 [dependencies]
-autoimpl-operators.workspace = true
+derive-macros.workspace = true

@@ -3,7 +3,7 @@ use crate::{
     intermediate_repr::{self, BusId, IntermediateReprBuilder},
 };
 
-use autoimpl_operators::{derive_bus_bitwise_ops, derive_clock_bus};
+use derive_macros::{derive_bus_bitwise_ops, derive_clock_bus};
 
 mod operations;
 pub use operations::*;

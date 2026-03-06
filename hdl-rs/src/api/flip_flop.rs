@@ -1,4 +1,4 @@
-use autoimpl_operators::derive_bus_bitwise_ops;
+use derive_macros::derive_bus_bitwise_ops;
 
 use crate::{
     api::prelude::*,
