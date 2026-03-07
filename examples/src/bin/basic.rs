@@ -29,7 +29,5 @@ fn test_basic() {
     let a = TestInputBus::new([WireState::One; 8]);
     let b = TestInputBus::new([WireState::Zero; 8]);
 
-    let output = _basic(InputBusWrapper::new(a), InputBusWrapper::new(b));
-
-    let _value = output.eval();
+    let _output = _basic(InputBusWrapper::new(a), InputBusWrapper::new(b));
 }

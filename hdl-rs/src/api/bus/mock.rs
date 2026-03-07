@@ -22,10 +22,6 @@ impl<const W: usize> MockBus<W> {
 impl<const W: usize> Bus<W> for MockBus<W> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
 
-    fn eval(self) -> [WireState; W] {
-        self.0
-    }
-
     fn get_id(self) -> BusId {
         BusId::mock()
     }
@@ -50,10 +46,6 @@ impl<const W: usize> MockInputBus<W> {
 
 impl<const W: usize> Bus<W> for MockInputBus<W> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
-
-    fn eval(self) -> [WireState; W] {
-        self.values
-    }
 
     fn get_id(self) -> BusId {
         BusId::mock()

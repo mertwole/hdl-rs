@@ -19,7 +19,5 @@ fn test_feedback_loops() {
     use hdl_rs::api::testing::*;
 
     let a = TestInputBus::new([WireState::Zero, WireState::One]);
-    let output = _feedback_loops(InputBusWrapper::new(a));
-
-    let _value = output.eval();
+    let _output = _feedback_loops(InputBusWrapper::new(a));
 }

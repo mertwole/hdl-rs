@@ -73,12 +73,6 @@ impl<const W: usize, B: Bus<W>, const FROM: usize, const WIDTH: usize> Bus<WIDTH
 {
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
 
-    fn eval(self) -> [WireState; WIDTH] {
-        self.bus.eval()[(W - 1 - FROM)..W - 1 - FROM + WIDTH]
-            .try_into()
-            .expect("Checked to match the width")
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -124,13 +118,6 @@ impl<const W1: usize, B1: Bus<W1>, const W2: usize, B2: Bus<W2>> Bus<{ W1 + W2 }
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(B1::COMBINATIONAL_NETWORK_ID, B2::COMBINATIONAL_NETWORK_ID);
 
-    fn eval(self) -> [WireState; W1 + W2] {
-        [&self.lhs.eval()[..], &self.rhs.eval()[..]]
-            .concat()
-            .try_into()
-            .expect("Checked to match the width")
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -174,14 +161,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusAnd<W, BL, BR> {
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
 
-    fn eval(self) -> [WireState; W] {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        let result: Vec<_> = (0..W).map(|i| lhs[i].and(rhs[i])).collect();
-        result.try_into().expect("Checked to match the length")
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -223,14 +202,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> BusOr<W, BL, BR> {
 impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusOr<W, BL, BR> {
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
-
-    fn eval(self) -> [WireState; W] {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
-        result.try_into().expect("Checked to match the length")
-    }
 
     fn get_id(self) -> BusId {
         self.id
@@ -274,14 +245,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<W> for BusXor<W, BL, BR> {
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
 
-    fn eval(self) -> [WireState; W] {
-        let lhs = self.lhs.eval();
-        let rhs = self.rhs.eval();
-
-        let result: Vec<_> = (0..W).map(|i| lhs[i].or(rhs[i])).collect();
-        result.try_into().expect("Checked to match the length")
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -321,10 +284,6 @@ impl<const W: usize, B: Bus<W>> BusNot<W, B> {
 impl<const W: usize, B: Bus<W>> Bus<W> for BusNot<W, B> {
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
 
-    fn eval(self) -> [WireState; W] {
-        self.bus.eval().map(|value| value.not())
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -361,15 +320,6 @@ impl<const W: usize, B: Bus<W>, const S: usize> BusShiftRight<W, B, S> {
 
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftRight<W, B, S> {
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
-
-    fn eval(self) -> [WireState; W] {
-        let value = self.bus.eval();
-
-        let result: Vec<_> = (0..W)
-            .map(|i| if S > i { WireState::Zero } else { value[i - S] })
-            .collect();
-        result.try_into().expect("Checked to match the length")
-    }
 
     fn get_id(self) -> BusId {
         self.id
@@ -411,21 +361,6 @@ impl<const W: usize, B: Bus<W>, const S: usize> BusShiftLeft<W, B, S> {
 impl<const W: usize, B: Bus<W>, const S: usize> Bus<W> for BusShiftLeft<W, B, S> {
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
 
-    fn eval(self) -> [WireState; W] {
-        let value = self.bus.eval();
-
-        let result: Vec<_> = (0..W)
-            .map(|i| {
-                if i + S >= W {
-                    WireState::Zero
-                } else {
-                    value[i + S]
-                }
-            })
-            .collect();
-        result.try_into().expect("Checked to match the length")
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
@@ -450,65 +385,66 @@ const fn usize_min(lhs: usize, rhs: usize) -> usize {
     if lhs < rhs { lhs } else { rhs }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::api::bus::mock::*;
+// TODO: Reintroduce.
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use crate::api::bus::mock::*;
 
-    const VALUES: [WireState; 8] = [
-        WireState::Zero,
-        WireState::One,
-        WireState::X,
-        WireState::Z,
-        WireState::Zero,
-        WireState::One,
-        WireState::X,
-        WireState::Z,
-    ];
+//     const VALUES: [WireState; 8] = [
+//         WireState::Zero,
+//         WireState::One,
+//         WireState::X,
+//         WireState::Z,
+//         WireState::Zero,
+//         WireState::One,
+//         WireState::X,
+//         WireState::Z,
+//     ];
 
-    #[test]
-    fn test_sub_bus() {
-        let bus = MockBus::new(VALUES);
+//     #[test]
+//     fn test_sub_bus() {
+//         let bus = MockBus::new(VALUES);
 
-        let sub_bus = bus.sub_bus::<5, 4>();
-        assert_eq!(sub_bus.eval(), VALUES[2..4]);
+//         let sub_bus = bus.sub_bus::<5, 4>();
+//         assert_eq!(sub_bus.eval(), VALUES[2..4]);
 
-        let sub_bus = bus.sub_bus::<2, 0>();
-        assert_eq!(sub_bus.eval(), VALUES[5..8]);
+//         let sub_bus = bus.sub_bus::<2, 0>();
+//         assert_eq!(sub_bus.eval(), VALUES[5..8]);
 
-        let sub_bus = bus.sub_bus::<7, 3>();
-        assert_eq!(sub_bus.eval(), VALUES[0..5]);
+//         let sub_bus = bus.sub_bus::<7, 3>();
+//         assert_eq!(sub_bus.eval(), VALUES[0..5]);
 
-        let sub_bus = bus.sub_bus::<1, 1>();
-        assert_eq!(sub_bus.eval(), VALUES[6..7]);
-    }
+//         let sub_bus = bus.sub_bus::<1, 1>();
+//         assert_eq!(sub_bus.eval(), VALUES[6..7]);
+//     }
 
-    #[test]
-    fn test_append_bus_right() {
-        let bus_2_values = [WireState::X, WireState::X, WireState::X];
+//     #[test]
+//     fn test_append_bus_right() {
+//         let bus_2_values = [WireState::X, WireState::X, WireState::X];
 
-        let bus_1 = MockBus::new(VALUES);
-        let bus_2 = MockBus::new(bus_2_values);
-        let appended = bus_1.append(bus_2);
+//         let bus_1 = MockBus::new(VALUES);
+//         let bus_2 = MockBus::new(bus_2_values);
+//         let appended = bus_1.append(bus_2);
 
-        assert_eq!(
-            appended.eval().to_vec(),
-            [&VALUES[..], &bus_2_values].concat()
-        );
-    }
+//         assert_eq!(
+//             appended.eval().to_vec(),
+//             [&VALUES[..], &bus_2_values].concat()
+//         );
+//     }
 
-    #[allow(clippy::identity_op)]
-    #[test]
-    fn test_wire_at() {
-        let bus = MockBus::new(VALUES);
+//     #[allow(clippy::identity_op)]
+//     #[test]
+//     fn test_wire_at() {
+//         let bus = MockBus::new(VALUES);
 
-        let wire_4 = bus.wire_at::<4>();
-        assert_eq!(wire_4.eval(), [VALUES[VALUES.len() - 1 - 4]]);
+//         let wire_4 = bus.wire_at::<4>();
+//         assert_eq!(wire_4.eval(), [VALUES[VALUES.len() - 1 - 4]]);
 
-        let wire_0 = bus.wire_at::<0>();
-        assert_eq!(wire_0.eval(), [VALUES[VALUES.len() - 1 - 0]]);
+//         let wire_0 = bus.wire_at::<0>();
+//         assert_eq!(wire_0.eval(), [VALUES[VALUES.len() - 1 - 0]]);
 
-        let wire_7 = bus.wire_at::<7>();
-        assert_eq!(wire_7.eval(), [VALUES[VALUES.len() - 1 - 7]]);
-    }
-}
+//         let wire_7 = bus.wire_at::<7>();
+//         assert_eq!(wire_7.eval(), [VALUES[VALUES.len() - 1 - 7]]);
+//     }
+// }

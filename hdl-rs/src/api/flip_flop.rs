@@ -34,10 +34,6 @@ impl<const W: usize, D: Bus<W>, C: Bus<1> + ClockBus> Bus<W> for FlipFlopBus<W, 
     const COMBINATIONAL_NETWORK_ID: usize =
         1 + usize_min(D::COMBINATIONAL_NETWORK_ID, C::COMBINATIONAL_NETWORK_ID);
 
-    fn eval(self) -> [WireState; W] {
-        self.current_state
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
