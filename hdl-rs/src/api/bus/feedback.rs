@@ -1,7 +1,7 @@
 use derive_macros::derive_bus_bitwise_ops;
 
 use super::Bus;
-use crate::{intermediate_repr::BusId};
+use crate::intermediate_repr::BusId;
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W)]
