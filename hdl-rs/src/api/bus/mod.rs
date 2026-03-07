@@ -18,8 +18,6 @@ pub mod mock;
 pub trait Bus<const W: usize>: BusOpsMarker + Clone + Copy {
     const COMBINATIONAL_NETWORK_ID: usize;
 
-    fn eval(self) -> [WireState; W];
-
     fn get_id(self) -> BusId;
 
     fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder);
@@ -46,10 +44,6 @@ impl<const W: usize, B: InputBus<W>> InputBusWrapper<W, B> {
 
 impl<const W: usize, B: InputBus<W>> Bus<W> for InputBusWrapper<W, B> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
-
-    fn eval(self) -> [WireState; W] {
-        self.bus.eval()
-    }
 
     fn get_id(self) -> BusId {
         self.bus.get_id()
@@ -83,10 +77,6 @@ impl<const W: usize, B: Bus<1>> FanoutBus<W, B> {
 
 impl<const W: usize, B: Bus<1>> Bus<W> for FanoutBus<W, B> {
     const COMBINATIONAL_NETWORK_ID: usize = B::COMBINATIONAL_NETWORK_ID;
-
-    fn eval(self) -> [WireState; W] {
-        [self.wire.eval()[0]; W]
-    }
 
     fn get_id(self) -> BusId {
         self.id
@@ -124,10 +114,6 @@ impl<const W: usize> ConstBus<W> {
 
 impl<const W: usize> Bus<W> for ConstBus<W> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
-
-    fn eval(self) -> [WireState; W] {
-        self.values.map(From::from)
-    }
 
     fn get_id(self) -> BusId {
         self.id

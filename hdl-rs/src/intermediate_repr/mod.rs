@@ -8,30 +8,42 @@ use crate::{
 mod bus_id;
 pub use bus_id::*;
 
+pub mod simulation;
+
+#[derive(Default)]
 pub struct IntermediateReprBuilder {
+    repr: IntermediateRepr,
+}
+
+#[derive(Default, Clone)]
+pub struct IntermediateRepr {
     nodes: HashMap<BusId, Gate>,
     outputs: HashSet<OutputBus>,
 }
 
-// TODO: Add method `finalize` which will return `IntermediateRepr`.
 impl IntermediateReprBuilder {
     pub fn new() -> Self {
         Self {
-            nodes: HashMap::new(),
-            outputs: HashSet::new(),
+            repr: Default::default(),
         }
     }
 
     pub fn push_element(&mut self, element: Gate) {
-        if let Entry::Vacant(entry) = self.nodes.entry(element.get_id()) {
+        if let Entry::Vacant(entry) = self.repr.nodes.entry(element.get_id()) {
             entry.insert(element);
         }
     }
 
     pub fn push_output(&mut self, output: BusId) {
-        self.outputs.insert(OutputBus { id: output });
+        self.repr.outputs.insert(OutputBus { id: output });
     }
 
+    pub fn build(self) -> IntermediateRepr {
+        self.repr
+    }
+}
+
+impl IntermediateRepr {
     // TODO: Move this fn to `VerilogModule::from_intermediate_repr`.
     pub fn to_verilog(&self) -> VerilogModule {
         let mut module = VerilogModule::new();
@@ -63,6 +75,7 @@ impl OutputBus {
     }
 }
 
+#[derive(Clone, Debug)]
 pub enum Gate {
     Input(InputBus),
     Const(ConstBus),
@@ -93,6 +106,7 @@ impl Gate {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct InputBus {
     pub id: BusId,
 }
@@ -106,6 +120,7 @@ impl InputBus {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct ConstBus {
     pub id: BusId,
     pub value: Vec<LogicalWireState>,
@@ -125,6 +140,7 @@ impl ConstBus {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct BinaryGate {
     pub lhs: BusId,
     pub rhs: BusId,
@@ -132,6 +148,7 @@ pub struct BinaryGate {
     pub operator: BinaryGateOperator,
 }
 
+#[derive(Clone, Debug)]
 pub enum BinaryGateOperator {
     And,
     Or,
@@ -186,12 +203,14 @@ impl BinaryGate {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct UnaryGate {
     pub input: BusId,
     pub output: BusId,
     pub operator: UnaryGateOperator,
 }
 
+#[derive(Clone, Debug)]
 pub enum UnaryGateOperator {
     Not,
     ShiftLeft { shift: usize },
@@ -258,6 +277,7 @@ impl UnaryGate {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct FlipFlop {
     pub data: BusId,
     pub clock: BusId,

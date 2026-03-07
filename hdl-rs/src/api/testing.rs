@@ -27,10 +27,6 @@ impl<const W: usize> InputBus<W> for TestInputBus<W> {}
 impl<const W: usize> Bus<W> for TestInputBus<W> {
     const COMBINATIONAL_NETWORK_ID: usize = 0;
 
-    fn eval(self) -> [WireState; W] {
-        self.value
-    }
-
     fn get_id(self) -> BusId {
         self.id
     }
