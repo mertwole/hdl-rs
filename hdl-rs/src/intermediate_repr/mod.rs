@@ -1,27 +1,30 @@
 use std::collections::{HashMap, HashSet, hash_map::Entry};
 
 use crate::{
-    api::prelude::LogicalWireState,
+    api::prelude::{LogicalWireState, WireState},
+    intermediate_repr::simulation::SimulationContext,
     verilog::{self, VerilogModule},
 };
 
 mod bus_id;
 pub use bus_id::*;
 
+mod simulation;
+
 pub struct IntermediateReprBuilder {
-    repr: IntermediateRepr
+    repr: IntermediateRepr,
 }
 
 #[derive(Default, Clone)]
 pub struct IntermediateRepr {
     nodes: HashMap<BusId, Gate>,
-    outputs: HashSet<OutputBus>
+    outputs: HashSet<OutputBus>,
 }
 
 impl IntermediateReprBuilder {
     pub fn new() -> Self {
         Self {
-            repr: Default::default()
+            repr: Default::default(),
         }
     }
 
@@ -101,6 +104,16 @@ impl Gate {
             Self::FlipFlop(flip_flop) => flip_flop.to_verilog(module),
         }
     }
+
+    fn eval(&self, ctx: &SimulationContext) -> Vec<WireState> {
+        match self {
+            Self::Input(input) => input.eval(ctx),
+            Self::Const(const_bus) => const_bus.eval(ctx),
+            Self::Unary(unary) => unary.eval(ctx),
+            Self::Binary(binary) => binary.eval(ctx),
+            Self::FlipFlop(flip_flop) => flip_flop.eval(ctx),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -114,6 +127,10 @@ impl InputBus {
             name: self.id.to_string(),
             width: self.id.width(),
         });
+    }
+
+    fn eval(&self, ctx: &SimulationContext) -> Vec<WireState> {
+        ctx.eval_bus(self.id)
     }
 }
 
@@ -134,6 +151,10 @@ impl ConstBus {
         };
 
         module.add_wire(wire);
+    }
+
+    fn eval(&self, _ctx: &SimulationContext) -> Vec<WireState> {
+        self.value.iter().copied().map(Into::into).collect()
     }
 }
 
@@ -197,6 +218,32 @@ impl BinaryGate {
                 });
             }
         }
+    }
+
+    fn eval(&self, ctx: &SimulationContext) -> Vec<WireState> {
+        let mut lhs = ctx.eval_bus(self.lhs);
+        let mut rhs = ctx.eval_bus(self.rhs);
+
+        let zipped = lhs.iter().zip(rhs.iter());
+
+        let result: Vec<_> = match self.operator {
+            BinaryGateOperator::And => {
+                zipped.map(|(lhs, rhs)| lhs.and(*rhs)).collect()
+            }
+            BinaryGateOperator::Or => {
+                zipped.map(|(lhs, rhs)| lhs.or(*rhs)).collect()
+            }
+            BinaryGateOperator::Xor => {
+                zipped.map(|(lhs, rhs)| lhs.xor(*rhs)).collect()
+            }
+            BinaryGateOperator::Concat => {
+                lhs.append(&mut rhs);
+                lhs
+            }
+        };
+
+        assert_eq!(result.len(), self.output.width());
+        result
     }
 }
 
@@ -272,6 +319,42 @@ impl UnaryGate {
             }
         }
     }
+
+    fn eval(&self, ctx: &SimulationContext) -> Vec<WireState> {
+        let input = ctx.eval_bus(self.input);
+
+        let result = match self.operator {
+            UnaryGateOperator::Not => input.into_iter().map(|value| value.not()).collect(),
+            UnaryGateOperator::ShiftLeft { shift } => (0..self.output.width())
+                .map(|i| {
+                    if i + shift >= self.output.width() {
+                        WireState::Zero
+                    } else {
+                        input[i + shift]
+                    }
+                })
+                .collect(),
+            UnaryGateOperator::ShiftRight { shift } => (0..self.output.width())
+                .map(|i| {
+                    if shift > i {
+                        WireState::Zero
+                    } else {
+                        input[i - shift]
+                    }
+                })
+                .collect(),
+            UnaryGateOperator::SubBus { from, to } => {
+                input[self.input.width() - 1 - from..self.input.width() - to].to_vec()
+            }
+            UnaryGateOperator::Fanout => {
+                vec![input[0]; self.output.width()]
+            }
+        };
+
+        assert_eq!(result.len(), self.output.width());
+
+        result
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -289,5 +372,9 @@ impl FlipFlop {
             clock: self.clock.to_string(),
             data_bus: self.data.to_string(),
         });
+    }
+
+    fn eval(&self, _ctx: &SimulationContext) -> Vec<WireState> {
+        todo!()
     }
 }
