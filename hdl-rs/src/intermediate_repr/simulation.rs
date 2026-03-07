@@ -5,11 +5,6 @@ use crate::{
     intermediate_repr::{BinaryGateOperator, BusId, Gate, IntermediateRepr, UnaryGateOperator},
 };
 
-pub enum SimulationEvent {
-    Tick,
-    CommitStateChanges,
-}
-
 pub struct Simulator {
     intermediate_repr: IntermediateRepr,
     inputs: HashMap<BusId, Vec<WireState>>,
@@ -20,6 +15,11 @@ struct FlipFlopState {
     clock: WireState,
     current: Vec<WireState>,
     next: Vec<WireState>,
+}
+
+enum SimulationEvent {
+    Tick,
+    CommitStateChanges,
 }
 
 impl Simulator {
@@ -35,8 +35,12 @@ impl Simulator {
         self.inputs = inputs;
     }
 
-    // TODO: Simulate in one go(remove events).
-    pub fn simulate(&mut self, event: SimulationEvent) {
+    pub fn simulate(&mut self) {
+        self.simulate_event(SimulationEvent::Tick);
+        self.simulate_event(SimulationEvent::CommitStateChanges);
+    }
+
+    fn simulate_event(&mut self, event: SimulationEvent) {
         for node in self.intermediate_repr.nodes.values() {
             let Gate::FlipFlop(ff) = node else {
                 continue;

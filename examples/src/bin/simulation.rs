@@ -17,10 +17,7 @@ mod tests {
     use super::*;
     use hdl_rs::{
         api::testing::*,
-        intermediate_repr::{
-            IntermediateReprBuilder,
-            simulation::{SimulationEvent, Simulator},
-        },
+        intermediate_repr::{IntermediateReprBuilder, simulation::Simulator},
     };
 
     #[test]
@@ -47,8 +44,8 @@ mod tests {
                     .into_iter()
                     .collect(),
                 );
-                simulator.simulate(SimulationEvent::Tick);
-                simulator.simulate(SimulationEvent::CommitStateChanges);
+
+                simulator.simulate();
 
                 let outputs = simulator.get_outputs();
                 assert_eq!(
