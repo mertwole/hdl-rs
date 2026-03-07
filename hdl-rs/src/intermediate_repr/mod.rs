@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet, hash_map::Entry}};
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 
 use crate::{
     api::prelude::LogicalWireState,
