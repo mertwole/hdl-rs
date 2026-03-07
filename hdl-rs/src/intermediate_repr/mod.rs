@@ -8,7 +8,7 @@ use crate::{
 mod bus_id;
 pub use bus_id::*;
 
-mod simulation;
+pub mod simulation;
 
 pub struct IntermediateReprBuilder {
     repr: IntermediateRepr,

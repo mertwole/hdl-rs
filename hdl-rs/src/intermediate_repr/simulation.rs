@@ -35,6 +35,7 @@ impl Simulator {
         self.inputs = inputs;
     }
 
+    // TODO: Simulate in one go(remove events).
     pub fn simulate(&mut self, event: SimulationEvent) {
         for node in self.intermediate_repr.nodes.values() {
             let Gate::FlipFlop(ff) = node else {
@@ -75,6 +76,14 @@ impl Simulator {
                 }
             }
         }
+    }
+
+    pub fn get_outputs(&self) -> HashMap<BusId, Vec<WireState>> {
+        self.intermediate_repr
+            .outputs
+            .iter()
+            .map(|output| (output.id, self.get_ctx().eval_bus(output.id)))
+            .collect()
     }
 
     fn get_ctx<'a>(&'a self) -> SimulationContext<'a> {
@@ -166,6 +175,7 @@ fn eval_gate(gate: &Gate, ctx: &SimulationContext) -> Vec<WireState> {
             result
         }
         Gate::FlipFlop(ff) => match ctx.flip_flop_state.get(&ff.output) {
+            // TODO: Check cases with Xs and Zs.
             Some(state) => state.current.clone(),
             None => vec![WireState::X; ff.output.width()],
         },

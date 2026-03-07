@@ -4,5 +4,5 @@
 #![allow(dead_code)]
 
 pub mod api;
-mod intermediate_repr;
+pub mod intermediate_repr;
 mod verilog;
