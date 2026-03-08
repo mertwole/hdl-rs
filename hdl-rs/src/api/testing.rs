@@ -53,6 +53,12 @@ macro_rules! impl_int_input_bus {
             }
         }
 
+        impl Default for $name {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
         impl InputBus<$width> for $name {}
 
         impl $trait for $name {}
