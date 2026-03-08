@@ -5,6 +5,8 @@ use crate::{
 
 use derive_macros::{derive_bus_bitwise_ops, derive_clock_bus};
 
+mod integer;
+pub use integer::*;
 mod operations;
 pub use operations::*;
 

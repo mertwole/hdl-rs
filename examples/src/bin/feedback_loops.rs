@@ -18,6 +18,6 @@ fn _feedback_loops<A: InputBus<2> + 'static>(a: InputBusWrapper<2, A>) -> impl B
 fn test_feedback_loops() {
     use hdl_rs::api::testing::*;
 
-    let a = TestInputBus::new([WireState::Zero, WireState::One]);
+    let a = TestInputBus::new();
     let _output = _feedback_loops(InputBusWrapper::new(a));
 }

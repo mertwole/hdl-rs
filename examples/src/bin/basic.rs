@@ -26,8 +26,8 @@ fn _basic<A: InputBus<8> + ClockBus, B: InputBus<8>>(
 fn test_basic() {
     use hdl_rs::api::testing::*;
 
-    let a = TestInputBus::new([WireState::One; 8]);
-    let b = TestInputBus::new([WireState::Zero; 8]);
+    let a = TestInputBusU8::new();
+    let b = TestInputBusU8::new();
 
     let _output = _basic(InputBusWrapper::new(a), InputBusWrapper::new(b));
 }
