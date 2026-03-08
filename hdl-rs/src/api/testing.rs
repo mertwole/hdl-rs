@@ -20,6 +20,12 @@ impl<const W: usize> TestInputBus<W> {
     }
 }
 
+impl<const W: usize> Default for TestInputBus<W> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const W: usize> InputBus<W> for TestInputBus<W> {}
 
 impl<const W: usize> Bus<W> for TestInputBus<W> {
