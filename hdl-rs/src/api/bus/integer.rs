@@ -1,35 +1,40 @@
 use derive_macros::{derive_bus_bitwise_ops, derive_clock_bus};
 
-use crate::{api::bus::Bus, intermediate_repr::BusId};
+use crate::{
+    api::bus::Bus,
+    intermediate_repr::{BusId, IntermediateReprBuilder},
+};
 
 /// Bus representing a W-bit unsigned integer.
-trait UnsignedIntegerBus<const W: usize>: Bus<W> {}
+pub trait UnsignedIntegerBus<const W: usize>: Bus<W> {}
 
 /// Bus representing a W-bit signed integer in a two's complement representation.
-trait SignedIntegerBus<const W: usize>: Bus<W> {}
+pub trait SignedIntegerBus<const W: usize>: Bus<W> {}
 
-trait SignedOps<const W: usize>: SignedIntegerBus<W> {
-    fn add<RB: Bus<W>>(self, rhs: RB) -> SignedAddResult<W, Self, RB> {
-        SignedAddResult::new(self, rhs)
-    }
-
-    fn sub<RB: Bus<W>>(self, rhs: RB) -> SignedSubResult<W, Self, RB> {
-        SignedSubResult::new(self, rhs)
-    }
+pub fn signed_integer_adder<const W: usize, LB: SignedIntegerBus<W>, RB: SignedIntegerBus<W>>(
+    lhs: LB,
+    rhs: RB,
+) -> SignedAddResult<W, LB, RB> {
+    SignedAddResult::new(lhs, rhs)
 }
-
-impl<const W: usize, T: SignedIntegerBus<W>> SignedOps<W> for T {}
 
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W + 1)]
 #[derive_clock_bus(BL, BR)]
-struct SignedAddResult<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+pub struct SignedAddResult<const W: usize, BL: SignedIntegerBus<W>, BR: SignedIntegerBus<W>> {
     lhs: BL,
     rhs: BR,
     bus_id: BusId,
 }
 
-impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<{ W + 1 }> for SignedAddResult<W, BL, BR> {
+impl<const W: usize, BL: SignedIntegerBus<W>, BR: SignedIntegerBus<W>> SignedIntegerBus<{ W + 1 }>
+    for SignedAddResult<W, BL, BR>
+{
+}
+
+impl<const W: usize, BL: SignedIntegerBus<W>, BR: SignedIntegerBus<W>> Bus<{ W + 1 }>
+    for SignedAddResult<W, BL, BR>
+{
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
 
@@ -45,7 +50,7 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<{ W + 1 }> for SignedAddResult<
     }
 }
 
-impl<const W: usize, BL: Bus<W>, BR: Bus<W>> SignedAddResult<W, BL, BR> {
+impl<const W: usize, BL: SignedIntegerBus<W>, BR: SignedIntegerBus<W>> SignedAddResult<W, BL, BR> {
     fn new(lhs: BL, rhs: BR) -> Self {
         Self {
             lhs,
@@ -55,16 +60,34 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> SignedAddResult<W, BL, BR> {
     }
 }
 
+pub fn unsigned_integer_adder<
+    const W: usize,
+    LB: UnsignedIntegerBus<W>,
+    RB: UnsignedIntegerBus<W>,
+>(
+    lhs: LB,
+    rhs: RB,
+) -> UnsignedAddResult<W, LB, RB> {
+    UnsignedAddResult::new(lhs, rhs)
+}
+
 #[derive(Clone, Copy)]
 #[derive_bus_bitwise_ops(W + 1)]
 #[derive_clock_bus(BL, BR)]
-struct SignedSubResult<const W: usize, BL: Bus<W>, BR: Bus<W>> {
+pub struct UnsignedAddResult<const W: usize, BL: UnsignedIntegerBus<W>, BR: UnsignedIntegerBus<W>> {
     lhs: BL,
     rhs: BR,
     bus_id: BusId,
 }
 
-impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<{ W + 1 }> for SignedSubResult<W, BL, BR> {
+impl<const W: usize, BL: UnsignedIntegerBus<W>, BR: UnsignedIntegerBus<W>>
+    UnsignedIntegerBus<{ W + 1 }> for UnsignedAddResult<W, BL, BR>
+{
+}
+
+impl<const W: usize, BL: UnsignedIntegerBus<W>, BR: UnsignedIntegerBus<W>> Bus<{ W + 1 }>
+    for UnsignedAddResult<W, BL, BR>
+{
     const COMBINATIONAL_NETWORK_ID: usize =
         usize_min(BL::COMBINATIONAL_NETWORK_ID, BR::COMBINATIONAL_NETWORK_ID);
 
@@ -72,15 +95,14 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> Bus<{ W + 1 }> for SignedSubResult<
         self.bus_id
     }
 
-    fn build_intermediate_repr(
-        self,
-        builder: &mut crate::intermediate_repr::IntermediateReprBuilder,
-    ) {
+    fn build_intermediate_repr(self, builder: &mut IntermediateReprBuilder) {
         todo!()
     }
 }
 
-impl<const W: usize, BL: Bus<W>, BR: Bus<W>> SignedSubResult<W, BL, BR> {
+impl<const W: usize, BL: UnsignedIntegerBus<W>, BR: UnsignedIntegerBus<W>>
+    UnsignedAddResult<W, BL, BR>
+{
     fn new(lhs: BL, rhs: BR) -> Self {
         Self {
             lhs,
@@ -89,8 +111,6 @@ impl<const W: usize, BL: Bus<W>, BR: Bus<W>> SignedSubResult<W, BL, BR> {
         }
     }
 }
-
-// TODO: Unsigned ops.
 
 const fn usize_min(lhs: usize, rhs: usize) -> usize {
     if lhs < rhs { lhs } else { rhs }
