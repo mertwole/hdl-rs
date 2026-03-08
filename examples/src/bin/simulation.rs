@@ -22,8 +22,8 @@ mod tests {
 
     #[test]
     fn test_simulation() {
-        let clk = TestInputBus::new([WireState::One]);
-        let data = TestInputBus::new([WireState::One; 2]);
+        let clk = TestInputBus::new();
+        let data = TestInputBus::new();
 
         let output_bus = _simulation(InputBusWrapper::new(clk), InputBusWrapper::new(data));
 
