@@ -48,16 +48,18 @@ impl Parse for Attribute {
 }
 
 pub fn generate_impl(attr: Attribute, block: Block) -> TokenStream {
-    (attr.from..attr.to)
+    let result: TokenStream = (attr.from..attr.to)
         .map(|i| {
             let const_name = &attr.iterator;
 
             quote!(
                 {
-                const #const_name: u64 = #i;
-                #block
+                    const #const_name: u64 = #i;
+                    #block
                 }
             )
         })
-        .collect()
+        .collect();
+
+    quote!({ #result })
 }
