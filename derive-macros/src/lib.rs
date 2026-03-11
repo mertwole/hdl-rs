@@ -5,10 +5,11 @@ extern crate syn;
 
 // TODO: Add tests.
 
-use syn::{Expr, ItemStruct, Token, Type, parse_macro_input, punctuated::Punctuated};
+use syn::{Block, Expr, ItemStruct, Token, Type, parse_macro_input, punctuated::Punctuated};
 
 mod bus_bitwise_ops;
 mod clock_bus;
+mod logic_generator;
 
 #[proc_macro_attribute]
 pub fn derive_bus_bitwise_ops(
@@ -46,4 +47,17 @@ pub fn derive_clock_bus(
 
     item.extend(proc_macro::TokenStream::from(trait_impl));
     item
+}
+
+#[proc_macro_attribute]
+pub fn logic_generator(
+    attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let input = item.clone();
+
+    let block = parse_macro_input!(input as Block);
+    let attribute = parse_macro_input!(attr as logic_generator::Attribute);
+
+    proc_macro::TokenStream::from(logic_generator::generate_impl(attribute, block))
 }

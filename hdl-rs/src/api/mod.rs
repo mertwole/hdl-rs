@@ -1,6 +1,7 @@
 pub mod bus;
 pub mod concat;
 pub mod flip_flop;
+pub mod util;
 pub mod wire_state;
 
 #[cfg(feature = "testing")]
@@ -11,6 +12,7 @@ pub mod prelude {
     pub use super::bus::*;
     pub use super::concat::*;
     pub use super::flip_flop::*;
+    pub use super::util::*;
     pub use super::wire_state::*;
     pub use crate::concat_buses;
 }
