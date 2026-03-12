@@ -6,7 +6,10 @@ use crate::{
 };
 
 pub trait BusOps<const W: usize>: Bus<W> {
-    fn wire_at<const I: usize>(self) -> SubBus<W, Self, I, 1> {
+    fn wire_at<const I: usize>(self) -> SubBus<W, Self, I, 1>
+    where
+        [(); W - I - 1]:,
+    {
         SubBus::new(self)
     }
 
