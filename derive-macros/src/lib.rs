@@ -56,8 +56,8 @@ pub fn logic_generator(
 ) -> proc_macro::TokenStream {
     let input = item.clone();
 
-    let block = parse_macro_input!(input as Block);
+    let function = parse_macro_input!(input as syn::ItemFn);
     let attribute = parse_macro_input!(attr as logic_generator::Attribute);
 
-    proc_macro::TokenStream::from(logic_generator::generate_impl(attribute, block))
+    proc_macro::TokenStream::from(logic_generator::generate_impl(attribute, function))
 }

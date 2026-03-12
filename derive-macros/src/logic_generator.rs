@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use syn::{
-    Block, Ident, Lit, Token,
+    Ident, ItemFn, Lit, Token,
     parse::{Parse, ParseStream},
 };
 
@@ -8,9 +8,9 @@ pub struct Attribute {
     _for: Token![for],
     iterator: Ident,
     _in: Token![in],
-    from: u64,
+    from: usize,
     _range: Token![..],
-    to: u64,
+    to: usize,
 }
 
 impl Parse for Attribute {
@@ -47,19 +47,32 @@ impl Parse for Attribute {
     }
 }
 
-pub fn generate_impl(attr: Attribute, block: Block) -> TokenStream {
-    let result: TokenStream = (attr.from..attr.to)
+pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
+    let old_body = function.block;
+
+    let fn_body: TokenStream = (attr.from..attr.to)
         .map(|i| {
             let const_name = &attr.iterator;
 
             quote!(
-                {
-                    const #const_name: u64 = #i;
-                    #block
-                }
+                let input = {
+                    const #const_name: usize = #i;
+                    #old_body
+                };
             )
         })
         .collect();
 
-    quote!({ #result })
+    let attrs = function.attrs;
+    let vis = function.vis;
+    let sig = function.sig;
+
+    quote!(
+        #(#attrs)*
+        #vis #sig
+        {
+            #fn_body
+            input
+        }
+    )
 }
