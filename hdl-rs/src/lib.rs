@@ -5,5 +5,4 @@
 
 pub mod api;
 pub mod intermediate_repr;
-mod util;
 mod verilog;

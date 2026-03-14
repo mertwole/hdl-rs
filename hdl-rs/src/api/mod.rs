@@ -13,4 +13,6 @@ pub mod prelude {
     pub use super::flip_flop::*;
     pub use super::wire_state::*;
     pub use crate::concat_buses;
+
+    pub use derive_macros::logic_generator;
 }

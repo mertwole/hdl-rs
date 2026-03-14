@@ -3,6 +3,7 @@ use proc_macro2::TokenStream;
 use syn::{
     FnArg, GenericParam, Ident, ItemFn, Lit, Pat, Token,
     parse::{Parse, ParseStream},
+    parse_quote,
 };
 
 pub struct Attribute {
@@ -74,7 +75,7 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
                 panic!("Maximum of one #[input] attribute is expected")
             }
 
-            input_arg = Some((arg_ident, arg_idx));
+            input_arg = Some(arg_idx);
         }
     }
 
@@ -88,16 +89,18 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
         .into_iter()
         .map(|arg| match arg {
             FnArg::Receiver(_) => panic!("Receiver args are not allowed"),
-            FnArg::Typed(arg) => arg.pat,
+            FnArg::Typed(arg) => arg.pat.as_ref().clone(),
         })
         .collect();
 
     // Call the inner fn multiple times.
+    let input_arg_name = input_arg
+        .map(|idx| call_args[idx].clone())
+        .unwrap_or(parse_quote!(_));
     let fn_body: TokenStream = (attr.from..attr.to)
         .map(|i| {
             quote!(
-                // TODO: Rename.
-                let input = #fn_name::<#i>(#(#call_args,)*);
+                let #input_arg_name = #fn_name::<#i>(#(#call_args,)*);
             )
         })
         .collect();
@@ -131,8 +134,8 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
             #inner_body
 
             #fn_body
-            // TODO: Rename
-            input
+
+            #input_arg_name
         }
     )
 }
