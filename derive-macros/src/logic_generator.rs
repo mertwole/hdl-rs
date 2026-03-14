@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use syn::{
-    FnArg, Ident, ItemFn, Lit, Pat, Token,
+    FnArg, GenericParam, Ident, ItemFn, Lit, Pat, Token,
     parse::{Parse, ParseStream},
 };
 
@@ -49,11 +49,10 @@ impl Parse for Attribute {
 }
 
 pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
-    let old_body = function.block;
     let mut signature = function.sig;
 
+    // Determine input argument position(if any).
     let mut input_arg = None;
-
     for (arg_idx, arg) in signature.inputs.iter_mut().enumerate() {
         if let FnArg::Typed(typed) = arg {
             let input = typed
@@ -79,8 +78,11 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
         }
     }
 
-    let fn_name = signature.ident.clone();
-    let call_args: Vec<_> = signature
+    let inner_signature = signature.clone();
+
+    // Generate call args for the inner fn.
+    let fn_name = inner_signature.ident.clone();
+    let call_args: Vec<_> = inner_signature
         .inputs
         .clone()
         .into_iter()
@@ -90,6 +92,7 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
         })
         .collect();
 
+    // Call the inner fn multiple times.
     let fn_body: TokenStream = (attr.from..attr.to)
         .map(|i| {
             quote!(
@@ -99,16 +102,33 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
         })
         .collect();
 
+    // Remove the iterator generic from the outer function signature.
+    signature.generics.params = signature
+        .generics
+        .params
+        .into_iter()
+        .filter(|param| {
+            let GenericParam::Const(const_param) = param else {
+                return true;
+            };
+
+            const_param.ident != attr.iterator
+        })
+        .collect();
+    // TODO: Allow generics where iterator const is not present.
+    signature.generics.where_clause = None;
+
     let attrs = function.attrs;
     let vis = function.vis;
+    let inner_body = function.block;
 
     quote!(
         #(#attrs)*
         #vis #signature
         {
             #(#attrs)*
-            #vis #signature
-            #old_body
+            #vis #inner_signature
+            #inner_body
 
             #fn_body
             // TODO: Rename

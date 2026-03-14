@@ -1,6 +1,9 @@
 use derive_macros::logic_generator;
 
-use crate::api::bus::{Bus, BusOps};
+use crate::api::{
+    bus::{Bus, BusOps, ConstBus},
+    prelude::LogicalWireState,
+};
 
 #[test]
 fn test_adder_stage() {
@@ -8,10 +11,10 @@ fn test_adder_stage() {
     let b = ConstBus::new([LogicalWireState::Zero; 8]);
     let input = ConstBus::new([LogicalWireState::Zero]);
 
-    let _ = adder_stage::<0>(input, a, b);
+    let _ = adder_stage(input, a, b);
 }
 
-#[logic_generator(for I in 0..1)]
+#[logic_generator(for I in 0..8)]
 fn adder_stage<const I: usize>(
     #[input] input: impl Bus<1>,
     a: impl Bus<8>,
