@@ -1,6 +1,7 @@
+use itertools::Itertools;
 use proc_macro2::TokenStream;
 use syn::{
-    Ident, ItemFn, Lit, Token,
+    FnArg, Ident, ItemFn, Lit, Pat, Token,
     parse::{Parse, ParseStream},
 };
 
@@ -49,29 +50,68 @@ impl Parse for Attribute {
 
 pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
     let old_body = function.block;
+    let mut signature = function.sig;
+
+    let mut input_arg = None;
+
+    for (arg_idx, arg) in signature.inputs.iter_mut().enumerate() {
+        if let FnArg::Typed(typed) = arg {
+            let input = typed
+                .attrs
+                .iter()
+                .find_position(|attr| attr.meta.path().is_ident("input"));
+
+            let Some((input_pos, _)) = input else {
+                continue;
+            };
+
+            typed.attrs.remove(input_pos);
+
+            let Pat::Ident(arg_ident) = typed.pat.as_ref() else {
+                panic!("Ident is expected as a function argument");
+            };
+
+            if input_arg.is_some() {
+                panic!("Maximum of one #[input] attribute is expected")
+            }
+
+            input_arg = Some((arg_ident, arg_idx));
+        }
+    }
+
+    let fn_name = signature.ident.clone();
+    let call_args: Vec<_> = signature
+        .inputs
+        .clone()
+        .into_iter()
+        .map(|arg| match arg {
+            FnArg::Receiver(_) => panic!("Receiver args are not allowed"),
+            FnArg::Typed(arg) => arg.pat,
+        })
+        .collect();
 
     let fn_body: TokenStream = (attr.from..attr.to)
         .map(|i| {
-            let const_name = &attr.iterator;
-
             quote!(
-                let input = {
-                    const #const_name: usize = #i;
-                    #old_body
-                };
+                // TODO: Rename.
+                let input = #fn_name::<#i>(#(#call_args,)*);
             )
         })
         .collect();
 
     let attrs = function.attrs;
     let vis = function.vis;
-    let sig = function.sig;
 
     quote!(
         #(#attrs)*
-        #vis #sig
+        #vis #signature
         {
+            #(#attrs)*
+            #vis #signature
+            #old_body
+
             #fn_body
+            // TODO: Rename
             input
         }
     )
