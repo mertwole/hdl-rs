@@ -67,7 +67,7 @@ pub fn generate_impl(attr: Attribute, function: ItemFn) -> TokenStream {
 
             typed.attrs.remove(input_pos);
 
-            let Pat::Ident(arg_ident) = typed.pat.as_ref() else {
+            let Pat::Ident(_) = typed.pat.as_ref() else {
                 panic!("Ident is expected as a function argument");
             };
 

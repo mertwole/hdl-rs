@@ -17,9 +17,7 @@ where
     let ai = a.wire_at::<I>();
     let bi = b.wire_at::<I>();
 
-    let and = ai.and(bi).and(carry);
-
-    and
+    ai.and(bi).and(carry)
 }
 
 #[test]
