@@ -6,6 +6,8 @@ pub mod wire_state;
 #[cfg(feature = "testing")]
 pub mod testing;
 
+pub use derive_macros::logic_generator;
+
 #[allow(unused_imports)]
 pub mod prelude {
     pub use super::bus::*;
