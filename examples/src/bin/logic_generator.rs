@@ -1,28 +1,47 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use std::marker::PhantomData;
-
 use hdl_rs::api::prelude::*;
 
-trait StageImpl<
-    const Input: usize,
-    const Output: usize,
-    const StageOutput: usize,
-    const Intermediate: usize,
+struct StageOutput<const WO: usize, O: Bus<WO>, const WI: usize, I: Bus<WI>> {
+    pub output: O,
+    pub intermediate: I,
+}
+
+trait Generator<
+    Input,
+    const OUTPUT_WIDTH: usize,
+    const STAGE_OUTPUT_WIDTH: usize,
+    const INTERMEDIATE_WIDTH: usize,
 >
 {
     fn stage(
-        input: impl Bus<Input>,
-        intermediate: impl Bus<Intermediate>,
-    ) -> (impl Bus<Intermediate>, impl Bus<StageOutput>);
+        input: Input,
+        intermediate: impl Bus<INTERMEDIATE_WIDTH>,
+    ) -> StageOutput<
+        STAGE_OUTPUT_WIDTH,
+        impl Bus<STAGE_OUTPUT_WIDTH>,
+        INTERMEDIATE_WIDTH,
+        impl Bus<INTERMEDIATE_WIDTH>,
+    >;
 }
 
-struct Adder {}
+struct Test {}
 
-impl StageImpl<1, 1, 1, 1> for Adder {
-    fn stage(input: impl Bus<1>, intermediate: impl Bus<1>) -> (impl Bus<1>, impl Bus<1>) {
-        (input, intermediate)
+struct TestInput<const W: usize, A: Bus<W>, B: Bus<W>> {
+    a: A,
+    b: B,
+}
+
+impl<const W: usize, A: Bus<W>, B: Bus<W>> Generator<TestInput<W, A, B>, W, 1, 1> for Test {
+    fn stage(
+        input: TestInput<W, A, B>,
+        intermediate: impl Bus<1>,
+    ) -> StageOutput<1, impl Bus<1>, 1, impl Bus<1>> {
+        StageOutput {
+            output: intermediate,
+            intermediate,
+        }
     }
 }
 
