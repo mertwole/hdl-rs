@@ -6,7 +6,7 @@ pub mod wire_state;
 #[cfg(feature = "testing")]
 pub mod testing;
 
-pub use derive_macros::logic_generator;
+pub use derive_macros::const_for_loop;
 
 #[allow(unused_imports)]
 pub mod prelude {
@@ -17,5 +17,4 @@ pub mod prelude {
     pub use crate::concat_buses;
 
     pub use derive_macros::const_for_loop;
-    pub use derive_macros::logic_generator;
 }

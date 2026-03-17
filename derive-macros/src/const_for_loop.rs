@@ -1,8 +1,7 @@
-use proc_macro2::{Punct, TokenStream, TokenTree};
+use proc_macro2::TokenStream;
 use syn::{
-    Block, Expr, FnArg, GenericParam, Ident, ItemFn, Lit, Pat, Token,
+    Block, Lit, Token,
     parse::{Parse, ParseStream},
-    parse_quote,
 };
 
 pub struct Item {
