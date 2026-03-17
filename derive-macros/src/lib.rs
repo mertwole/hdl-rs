@@ -9,7 +9,7 @@ use syn::{Expr, ItemStruct, Token, Type, parse_macro_input, punctuated::Punctuat
 
 mod bus_bitwise_ops;
 mod clock_bus;
-mod logic_generator;
+mod const_for_loop;
 
 #[proc_macro_attribute]
 pub fn derive_bus_bitwise_ops(
@@ -49,15 +49,8 @@ pub fn derive_clock_bus(
     item
 }
 
-#[proc_macro_attribute]
-pub fn logic_generator(
-    attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    let input = item.clone();
-
-    let function = parse_macro_input!(input as syn::ItemFn);
-    let attribute = parse_macro_input!(attr as logic_generator::Attribute);
-
-    proc_macro::TokenStream::from(logic_generator::generate_impl(attribute, function))
+#[proc_macro]
+pub fn const_for_loop(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let item = parse_macro_input!(input as const_for_loop::Item);
+    proc_macro::TokenStream::from(const_for_loop::generate_impl(item))
 }
