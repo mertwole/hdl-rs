@@ -15,6 +15,7 @@ fn _const_for_loop(a: impl Bus<8>, b: impl Bus<8>) -> impl Bus<8> {
         {
             let ai = a.wire_at::<{iterator_literal!()}>();
             let bi = b.wire_at::<{iterator_literal!()}>();
+
             let carry = ai & bi & carry;
             let output = concat_buses!(output, carry);
         }
