@@ -16,5 +16,6 @@ pub mod prelude {
     pub use super::wire_state::*;
     pub use crate::concat_buses;
 
+    pub use derive_macros::const_for_loop;
     pub use derive_macros::logic_generator;
 }

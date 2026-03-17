@@ -7,19 +7,33 @@ fn main() {}
 
 fn adder(a: impl Bus<8>, b: impl Bus<8>) -> impl Bus<8> {
     const_for_loop!(
-        for I in 0..8
-        let carry = ConstBus::new([LogicalWireState::Zero]);
-        // In future: reduction op.
-    {
-        let ai = a.wire_at::<I>();
-        let bi = b.wire_at::<I>();
+        0..8
+        {
+            let carry = ConstBus::new([LogicalWireState::Zero]);
+            let output = ConstBus::new([]);
+        }
+        {
+            let c = adder_stage::<{iterator_literal!()}>(a, b);
 
-        let carry = ai.and(bi).and(carry);
+            let carry = c.and(carry);
 
-        let out = carry.and(ai);
+            let out = carry.and(c);
 
-        out
-    })
+            let output = concat_buses!(output, out);
+        }
+    );
+
+    output
+}
+
+fn adder_stage<const I: usize>(a: impl Bus<8>, b: impl Bus<8>) -> impl Bus<1>
+where
+    [(); 8 - I - 1]:,
+{
+    let ai = a.wire_at::<I>();
+    let bi = b.wire_at::<I>();
+
+    ai.and(bi)
 }
 
 #[logic_generator(for I in 0..8)]
